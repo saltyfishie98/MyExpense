@@ -1,0 +1,54 @@
+name: my_expense
+description: A new Flutter project.
+version: 1.0.0+1
+
+publish_to: 'none' 
+
+environment:
+  sdk: '>=3.0.0-191.0.dev <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  state_extended: ^1.0.0
+  dynamic_color: ^1.6.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
