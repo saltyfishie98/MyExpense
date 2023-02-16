@@ -6,9 +6,13 @@ class AppTheme {
 
   static void setup({ColorScheme? light, ColorScheme? dark}) {
     if (light != null && dark != null) {
+      final modifiedLight = light.harmonized().copyWith(
+            background: Colors.grey[300],
+          );
+
       AppTheme.light = ThemeData(
         useMaterial3: _useMaterial3,
-        colorScheme: light.harmonized(),
+        colorScheme: modifiedLight,
       );
       AppTheme.dark = ThemeData(
         useMaterial3: _useMaterial3,
