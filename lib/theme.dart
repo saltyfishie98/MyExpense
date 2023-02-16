@@ -5,14 +5,17 @@ class AppTheme {
   AppTheme._();
 
   static void setup({ColorScheme? light, ColorScheme? dark}) {
+    late ColorScheme lightScheme;
+    late ColorScheme darkScheme;
+
     if (light != null && dark != null) {
-      final lightScheme = light
+      lightScheme = light
           .copyWith(
             brightness: Brightness.light,
           )
           .harmonized();
 
-      final darkScheme = dark
+      darkScheme = dark
           .copyWith(
             brightness: Brightness.dark,
           )
@@ -22,9 +25,12 @@ class AppTheme {
         useMaterial3: _useMaterial3,
         colorScheme: lightScheme,
         extensions: <ThemeExtension<dynamic>>[
-          ElementColors(
-            card: lightScheme.inversePrimary,
+          ElementThemes(
+            card: lightScheme.secondaryContainer,
             shadow: Colors.grey.shade400,
+            accent: lightScheme.surfaceVariant,
+            subsurface: Colors.grey.shade200,
+            h3Color: Colors.grey.shade400,
           ),
         ],
       );
@@ -34,9 +40,12 @@ class AppTheme {
         colorScheme: darkScheme,
         brightness: Brightness.dark,
         extensions: <ThemeExtension<dynamic>>[
-          ElementColors(
-            card: darkScheme.inversePrimary,
+          ElementThemes(
+            card: darkScheme.secondaryContainer,
             shadow: Colors.black,
+            accent: darkScheme.secondaryContainer,
+            subsurface: Colors.grey.shade200,
+            h3Color: Colors.grey.shade400,
           ),
         ],
       );
@@ -59,11 +68,11 @@ class AppTheme {
 
       final primaryColor = MaterialColor(swatchColor.value, swatch);
 
-      final lightScheme = ColorScheme.fromSwatch(
+      lightScheme = ColorScheme.fromSwatch(
         primarySwatch: primaryColor,
       ).copyWith(background: Colors.grey.shade300).harmonized();
 
-      final darkScheme = ColorScheme.fromSwatch(
+      darkScheme = ColorScheme.fromSwatch(
         primarySwatch: primaryColor,
         brightness: Brightness.dark,
       ).copyWith(background: Colors.grey.shade900).harmonized();
@@ -72,9 +81,12 @@ class AppTheme {
         useMaterial3: _useMaterial3,
         colorScheme: lightScheme,
         extensions: <ThemeExtension<dynamic>>[
-          ElementColors(
+          ElementThemes(
             card: lightScheme.primary,
             shadow: Colors.grey.shade400,
+            accent: lightScheme.primary,
+            subsurface: Colors.grey.shade200,
+            h3Color: Colors.grey.shade400,
           ),
         ],
       );
@@ -84,9 +96,12 @@ class AppTheme {
         colorScheme: darkScheme,
         brightness: Brightness.dark,
         extensions: <ThemeExtension<dynamic>>[
-          ElementColors(
+          ElementThemes(
             card: Colors.grey.shade700,
             shadow: Colors.black,
+            accent: darkScheme.primary,
+            subsurface: Colors.grey.shade200,
+            h3Color: Colors.grey.shade400,
           ),
         ],
       );
@@ -100,33 +115,51 @@ class AppTheme {
 }
 
 @immutable
-class ElementColors extends ThemeExtension<ElementColors> {
-  const ElementColors({
+class ElementThemes extends ThemeExtension<ElementThemes> {
+  const ElementThemes({
     required this.card,
     required this.shadow,
+    required this.accent,
+    required this.subsurface,
+    required this.h3Color,
   });
 
   final Color card;
   final Color shadow;
+  final Color accent;
+  final Color subsurface;
+  final Color h3Color;
 
   @override
-  ThemeExtension<ElementColors> copyWith({Color? card, Color? shadow}) {
-    return ElementColors(
+  ThemeExtension<ElementThemes> copyWith({
+    Color? card,
+    Color? shadow,
+    Color? accent,
+    Color? subsurface,
+    Color? h3Color,
+  }) {
+    return ElementThemes(
       card: card ?? this.card,
       shadow: shadow ?? this.shadow,
+      accent: accent ?? this.accent,
+      subsurface: subsurface ?? this.subsurface,
+      h3Color: h3Color ?? this.h3Color,
     );
   }
 
   @override
-  ThemeExtension<ElementColors> lerp(
-      ThemeExtension<ElementColors>? other, double t) {
-    if (other is! ElementColors) {
+  ThemeExtension<ElementThemes> lerp(
+      ThemeExtension<ElementThemes>? other, double t) {
+    if (other is! ElementThemes) {
       return this;
     }
 
-    return ElementColors(
+    return ElementThemes(
       card: Color.lerp(card, other.card, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
+      accent: Color.lerp(accent, other.accent, t)!,
+      subsurface: Color.lerp(subsurface, other.subsurface, t)!,
+      h3Color: Color.lerp(h3Color, other.h3Color, t)!,
     );
   }
 }

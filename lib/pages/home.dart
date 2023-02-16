@@ -15,7 +15,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final elmtColors = Theme.of(context).extension<ElementColors>();
+    final elmtThemes = theme.extension<ElementThemes>();
 
     return Scaffold(
       body: SafeArea(
@@ -23,9 +23,8 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
             children: [
+              //// Title Bar ////////////////////////////////////////
               const SizedBox(width: double.infinity, height: 10),
-
-              // Title Bar
               const Row(
                 children: [
                   Text(
@@ -38,47 +37,39 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
 
+              //// Graph ////////////////////////////////////////////
               const SizedBox(width: double.infinity, height: 15),
-
-              // Graph
               Container(
                 width: double.infinity,
                 height: 175,
                 decoration: BoxDecoration(
-                  color: elmtColors?.card,
+                  color: elmtThemes?.card,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          elmtColors != null ? elmtColors.shadow : Colors.black,
-                      blurRadius: 10,
+                      blurRadius: 7,
+                      color: elmtThemes?.shadow ?? Colors.black,
                     ),
                   ],
                 ),
               ),
 
+              //// Selector /////////////////////////////////////////
               const SizedBox(width: double.infinity, height: 20),
-
-              Container(
-                width: double.infinity,
-                height: 35,
-                decoration: BoxDecoration(
-                    color: theme.highlightColor,
-                    borderRadius: BorderRadius.circular(15)),
-              ),
-
-              const SizedBox(width: double.infinity, height: 15),
-
-              // Category Title
-              const SizedBox(
-                width: double.infinity,
-                child: Text(
-                  "Expense",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Container(
+                  width: double.infinity,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: elmtThemes?.subsurface,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
                 ),
               ),
 
-              // Categories
+              //// Categories ///////////////////////////////////////
+              const SizedBox(width: double.infinity, height: 15),
               Expanded(
                 flex: 1,
                 child: Stack(
@@ -94,15 +85,21 @@ class _HomePageState extends State<HomePage> {
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
-                              child: Text("Day $index"),
+                              child: Text(
+                                "Day $index",
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  color: elmtThemes?.h3Color,
+                                ),
+                              ),
                             ),
                           ),
                           content: Column(
                             children: [
-                              _entry(theme),
-                              _entry(theme),
-                              _entry(theme),
-                              _entry(theme),
+                              _entry(context),
+                              _entry(context),
+                              _entry(context),
+                              _entry(context),
                             ],
                           ),
                         );
@@ -127,12 +124,41 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-Widget _entry(ThemeData theme) {
+Widget _entry(BuildContext context) {
+  final elmtThemes = Theme.of(context).extension<ElementThemes>();
+
   return Container(
     width: double.infinity,
-    height: 60,
+    height: 75,
     decoration: BoxDecoration(
+      // color: Colors.amber,
       borderRadius: BorderRadius.circular(20),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            width: 55,
+            height: 55,
+            decoration: BoxDecoration(
+              color: elmtThemes?.accent,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: elmtThemes?.shadow ?? Colors.black,
+                  blurRadius: 5.0,
+                )
+              ],
+            ),
+          ),
+          const Text(
+            "Expenses",
+            style: TextStyle(fontSize: 20),
+          ),
+        ],
+      ),
     ),
   );
 }
