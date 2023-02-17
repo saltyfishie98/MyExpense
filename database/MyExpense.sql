@@ -42,6 +42,9 @@ SELECT *
 FROM Categories
     INNER JOIN Expenses ON Expenses.category = Categories.category;
 
+SELECT *
+FROM Expenses;
+
 /*markdown
 ### Delete Tables
 */

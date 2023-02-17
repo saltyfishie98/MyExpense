@@ -160,7 +160,14 @@ class _HomePageState extends StateX<HomePage> {
                       child: FloatingActionButton(
                         shape: const CircleBorder(),
                         onPressed: () {
-                          throw UnimplementedError();
+                          // HACK
+                          ctrlr.addExpense(
+                            Expense(
+                                datetime: DateTime.now(),
+                                amount: 100,
+                                title: "Test",
+                                category: "Sports"),
+                          );
                         },
                         child: const Icon(Icons.add),
                       ),

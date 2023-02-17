@@ -19,27 +19,70 @@ class Controller extends StateXController {
       expenseTable: expenseTable,
     );
 
-    final res = await _database.query(
+    final dbCategories = await _database.query(
       _model.categoryTable,
       columns: ["category"],
     );
 
-    for (final data in res) {
+    final dbExpense = await _database.query(_model.expenseTable);
+
+    for (final data in dbCategories) {
       _model.categories.add(data["category"].toString());
+    }
+
+    for (final data in dbExpense) {
+      _model.expenseData.add(
+        Expense(
+          datetime: DateTime.parse(data["datetime"].toString()),
+          amount: data["amount"] as int,
+          title: data["title"].toString(),
+          category: data["category"].toString(),
+        ),
+      );
     }
   }
 
-  void addExpense(Expense expense) {}
+  void addExpense(Expense expense) async {
+    _database.insert(_model.expenseTable, {
+      "datetime": "${expense.datetime}",
+      "amount": expense.amount,
+      "title": expense.title,
+      "category": expense.category,
+    });
+
+    final query = await _database.query(
+      _model.expenseTable,
+      where: "datetime = '${expense.datetime}'",
+    );
+
+    for (final data in query) {
+      _model.expenseData.add(
+        Expense(
+          datetime: DateTime.parse(data["datetime"].toString()),
+          amount: data["amount"] as int,
+          title: data["title"].toString(),
+          category: data["category"].toString(),
+        ),
+      );
+    }
+  }
 
   factory Controller() => _this ??= Controller._();
   Controller._() : super();
 }
 
 class Expense {
-  DateTime datetime = DateTime(0);
-  int amount = 0;
-  String title = "";
-  String category = "";
+  Expense({
+    required this.datetime,
+    required this.amount,
+    required this.title,
+    required this.category,
+  });
+
+  final DateTime datetime;
+  final int amount;
+  final String title;
+  final String category;
 }
 
 class _Model {

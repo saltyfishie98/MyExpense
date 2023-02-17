@@ -19,20 +19,20 @@ void main() {
   const categoryTable = "Categories";
 
   openDatabase(
-    "my_expense.db",
+    "expenses.sqlite",
     version: 1,
     onUpgrade: (db, oldVersion, newVersion) {},
     onCreate: (db, version) {
       return db.execute("""
-              CREATE TABLE $categoryTable(category TEXT PRIMARY KEY);
-              CREATE TABLE $expenseTable(
-                datetime TEXT PRIMARY KEY,
-                amount INT,
-                title TEXT,
-                category TEXT NOT NULL,
-                FOREIGN KEY (category) REFERENCES Categories(category)
-              );
-            """);
+        CREATE TABLE $categoryTable(category TEXT PRIMARY KEY);
+        CREATE TABLE $expenseTable(
+          datetime TEXT PRIMARY KEY,
+          amount INT,
+          title TEXT,
+          category TEXT NOT NULL,
+          FOREIGN KEY (category) REFERENCES Categories(category)
+        );
+      """);
     },
   ).then((db) {
     Controller().setup(
