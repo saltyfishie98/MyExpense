@@ -16,16 +16,21 @@ class WidgetRadio<T> extends StatelessWidget {
     required this.dormentWidget,
   });
 
+  void tapCallback(BuildContext context) {
+    onChanged(value);
+    Feedback.forTap(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (value == groupValue) {
-      return InkWell(
-        onTap: () => onChanged(value),
+      return GestureDetector(
+        onTap: () => tapCallback(context),
         child: activeWidget,
       );
     } else {
-      return InkWell(
-        onTap: () => onChanged(value),
+      return GestureDetector(
+        onTap: () => tapCallback(context),
         child: dormentWidget,
       );
     }
