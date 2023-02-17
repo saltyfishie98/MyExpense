@@ -1,3 +1,12 @@
 {
-    "autoHide.autoHideSideBar": false
+    "autoHide.autoHideSideBar": false,
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "MyExpense",
+            "database": "${workspaceFolder:my_expense}/.dart_tool/sqflite_common_ffi/databases/my_expense.db"
+        }
+    ]
 }

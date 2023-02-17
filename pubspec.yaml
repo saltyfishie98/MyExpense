@@ -14,6 +14,9 @@ dependencies:
   state_extended: ^1.0.0
   dynamic_color: ^1.6.2
   sticky_headers: "^0.3.0"
+  sqflite: ^2.2.4+1
+  sqflite_common_ffi: ^2.2.1+1
+  sqlite3_flutter_libs: ^0.5.12
 
 dev_dependencies:
   flutter_test:
