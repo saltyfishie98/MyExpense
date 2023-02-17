@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:my_expense/controller.dart';
 import 'package:my_expense/theme.dart';
 import 'package:my_expense/elements/widget_radio.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sticky_headers/sticky_headers.dart';
+import 'package:state_extended/state_extended.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State createState() => _HomePageState();
 }
 
 enum Graph { daily, monthly, yearly }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends StateX<HomePage> {
   Graph currentGraph = Graph.daily;
+  late Controller ctrlr;
+
+  _HomePageState() : super(Controller()) {
+    ctrlr = controller as Controller;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +52,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(width: double.infinity, height: 15),
               Container(
                 width: double.infinity,
-                height: 175,
+                height: 200,
                 decoration: BoxDecoration(
                   color: elmtThemes?.card,
                   borderRadius: BorderRadius.circular(20),

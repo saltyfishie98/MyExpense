@@ -24,6 +24,7 @@ class AppTheme {
       AppTheme.light = ThemeData(
         useMaterial3: _useMaterial3,
         colorScheme: lightScheme,
+        brightness: Brightness.light,
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
             card: lightScheme.inversePrimary,
