@@ -18,13 +18,16 @@ void main() {
   const expenseTable = "Expenses";
   const categoryTable = "Categories";
 
+  WidgetsFlutterBinding.ensureInitialized();
+
   openDatabase(
-    "expenses.sqlite",
+    // TODO: Rename on release
+    "test10.sqlite",
     version: 1,
     onUpgrade: (db, oldVersion, newVersion) {},
     onCreate: (db, version) {
-      return db.execute("""
-        CREATE TABLE $categoryTable(category TEXT PRIMARY KEY);
+      db.execute("CREATE TABLE $categoryTable(category TEXT PRIMARY KEY);");
+      db.execute("""
         CREATE TABLE $expenseTable(
           datetime TEXT PRIMARY KEY,
           amount INT,
