@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:my_expense/controller.dart';
 import 'package:my_expense/theme.dart';
 import 'package:my_expense/elements/widget_radio.dart';
@@ -18,6 +19,7 @@ enum Graph { daily, monthly, yearly }
 class _HomePageState extends StateX<HomePage> {
   Graph currentGraph = Graph.daily;
   late Controller ctrlr;
+  bool forUpdate = false;
 
   _HomePageState() : super(Controller()) {
     ctrlr = controller as Controller;
@@ -128,7 +130,12 @@ class _HomePageState extends StateX<HomePage> {
                   alignment: Alignment.bottomCenter,
                   children: [
                     ListView.builder(
+                      itemCount: ctrlr.dailySectionsCount,
                       itemBuilder: (context, index) {
+                        final data = ctrlr.dailyDataAt(index);
+                        final datetime =
+                            DateFormat('MMM dd').format(data.first.datetime);
+
                         return StickyHeader(
                           header: Container(
                             width: double.infinity,
@@ -137,7 +144,7 @@ class _HomePageState extends StateX<HomePage> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
                               child: Text(
-                                "Day $index",
+                                datetime,
                                 style: TextStyle(
                                   fontSize: 17,
                                   color: elmtThemes?.h3Color,
@@ -146,12 +153,7 @@ class _HomePageState extends StateX<HomePage> {
                             ),
                           ),
                           content: Column(
-                            children: [
-                              _entry(context),
-                              _entry(context),
-                              _entry(context),
-                              _entry(context),
-                            ],
+                            children: _dailyEntries(context, entries: data),
                           ),
                         );
                       },
@@ -161,31 +163,33 @@ class _HomePageState extends StateX<HomePage> {
                       child: FloatingActionButton(
                         shape: const CircleBorder(),
                         onPressed: () {
+                          ctrlr.addExpense(
+                            Expense(
+                              datetime: addMonth(today, -5),
+                              amount: 100,
+                              title: "Test1",
+                              category: "Sports",
+                            ),
+                          );
+                          ctrlr.addExpense(
+                            Expense(
+                              datetime: addYear(today, -1),
+                              amount: 100,
+                              title: "Test2",
+                              category: "Sports",
+                            ),
+                          );
+                          ctrlr.addExpense(
+                            Expense(
+                              datetime: addDay(today, 3),
+                              amount: 100,
+                              title: "Test3",
+                              category: "Sports",
+                            ),
+                          );
+
                           setState(() {
-                            ctrlr.addExpense(
-                              Expense(
-                                datetime: addMonth(today, -5),
-                                amount: 100,
-                                title: "Test1",
-                                category: "Sports",
-                              ),
-                            );
-                            ctrlr.addExpense(
-                              Expense(
-                                datetime: addYear(today, -1),
-                                amount: 100,
-                                title: "Test2",
-                                category: "Sports",
-                              ),
-                            );
-                            ctrlr.addExpense(
-                              Expense(
-                                datetime: addDay(today, 3),
-                                amount: 100,
-                                title: "Test3",
-                                category: "Sports",
-                              ),
-                            );
+                            forUpdate = !forUpdate;
                           });
                         },
                         child: const Icon(Icons.add),
@@ -202,42 +206,52 @@ class _HomePageState extends StateX<HomePage> {
   }
 }
 
-Widget _entry(BuildContext context) {
+List<Widget> _dailyEntries(
+  BuildContext context, {
+  required List<Expense> entries,
+}) {
   final elmtThemes = Theme.of(context).extension<ElementThemes>();
+  List<Widget> out = [];
 
-  return Container(
-    width: double.infinity,
-    height: 75,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            width: 55,
-            height: 55,
-            decoration: BoxDecoration(
-              color: elmtThemes?.accent,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                    color: elmtThemes?.shadow ?? Colors.black,
-                    blurRadius: 5.0,
-                    offset: const Offset(1, 2))
-              ],
-            ),
+  for (final expense in entries) {
+    out.add(
+      Container(
+        width: double.infinity,
+        height: 75,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 55,
+                height: 55,
+                decoration: BoxDecoration(
+                  color: elmtThemes?.accent,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                        color: elmtThemes?.shadow ?? Colors.black,
+                        blurRadius: 5.0,
+                        offset: const Offset(1, 2))
+                  ],
+                ),
+              ),
+              Text(
+                expense.title,
+                style: const TextStyle(fontSize: 20),
+              ),
+            ],
           ),
-          const Text(
-            "Expenses",
-            style: TextStyle(fontSize: 20),
-          ),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
+
+  return out;
 }
 
 Widget _radioElement<T>(

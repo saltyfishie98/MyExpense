@@ -16,7 +16,7 @@ class Controller extends StateXController {
 
   static Controller? _this;
 
-  late _Model _model;
+  _Model _model = _Model(categoryTable: "", expenseTable: "");
   late Database _database;
 
   int get dailySectionsCount => _model.expenseData.length;
@@ -79,6 +79,10 @@ class Controller extends StateXController {
         ),
       );
     }
+  }
+
+  List<Expense> dailyDataAt(int index) {
+    return _model.expenseData[index];
   }
 
   void _expenseDataAdd(Expense expense) {
