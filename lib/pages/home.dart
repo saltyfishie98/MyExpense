@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:my_expense/controller.dart';
 import 'package:my_expense/theme.dart';
 import 'package:my_expense/elements/widget_radio.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sticky_headers/sticky_headers.dart';
 import 'package:state_extended/state_extended.dart';
 
@@ -163,6 +162,8 @@ class _HomePageState extends StateX<HomePage> {
                       child: FloatingActionButton(
                         shape: const CircleBorder(),
                         onPressed: () {
+                          // TODO: Fix No Update
+
                           ctrlr.addExpense(
                             Expense(
                               datetime: addMonth(today, -5),
@@ -226,24 +227,52 @@ List<Widget> _dailyEntries(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 55,
-                height: 55,
-                decoration: BoxDecoration(
-                  color: elmtThemes?.accent,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                        color: elmtThemes?.shadow ?? Colors.black,
-                        blurRadius: 5.0,
-                        offset: const Offset(1, 2))
-                  ],
-                ),
+              //// Icon /////////////////////////////////
+              Row(
+                children: [
+                  Container(
+                    width: 55,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      color: elmtThemes?.accent,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                            color: elmtThemes?.shadow ?? Colors.black,
+                            blurRadius: 5.0,
+                            offset: const Offset(1, 2))
+                      ],
+                    ),
+                  ),
+
+                  //// Title ////////////////////////////////
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 7.0, horizontal: 13),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          expense.title,
+                          style: const TextStyle(fontSize: 17),
+                        ),
+                        Text(
+                          expense.category,
+                          style: const TextStyle(fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+
+              //// Amount //////////////////////////////
               Text(
-                expense.title,
+                "\$${(expense.amount / 100).toStringAsFixed(2)}",
                 style: const TextStyle(fontSize: 20),
-              ),
+              )
             ],
           ),
         ),
