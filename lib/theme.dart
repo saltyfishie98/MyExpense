@@ -26,7 +26,7 @@ class AppTheme {
         colorScheme: lightScheme,
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
-            card: lightScheme.secondaryContainer,
+            card: lightScheme.inversePrimary,
             shadow: Colors.grey.shade400,
             accent: lightScheme.surfaceVariant,
             subsurface: Colors.grey.shade200,
@@ -41,17 +41,17 @@ class AppTheme {
         brightness: Brightness.dark,
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
-            card: darkScheme.secondaryContainer,
+            card: darkScheme.inversePrimary,
             shadow: Colors.black,
-            accent: darkScheme.secondaryContainer,
-            subsurface: Colors.grey.shade200,
+            accent: darkScheme.surfaceVariant,
+            subsurface: const Color.fromRGBO(0, 0, 0, .22),
             h3Color: Colors.grey.shade400,
           ),
         ],
       );
       //
     } else {
-      const swatchColor = Color.fromRGBO(134, 134, 127, 1);
+      const swatchColor = Color.fromARGB(255, 35, 112, 61);
 
       Map<int, Color> swatch = {
         50: swatchColor.withOpacity(.1),
@@ -82,9 +82,9 @@ class AppTheme {
         colorScheme: lightScheme,
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
-            card: lightScheme.primary,
+            card: const Color.fromARGB(255, 36, 211, 95),
             shadow: Colors.grey.shade400,
-            accent: lightScheme.primary,
+            accent: const Color.fromARGB(255, 119, 204, 147),
             subsurface: Colors.grey.shade200,
             h3Color: Colors.grey.shade400,
           ),
@@ -97,10 +97,10 @@ class AppTheme {
         brightness: Brightness.dark,
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
-            card: Colors.grey.shade700,
+            card: const Color.fromARGB(255, 35, 112, 61),
             shadow: Colors.black,
-            accent: darkScheme.primary,
-            subsurface: Colors.grey.shade200,
+            accent: const Color.fromARGB(255, 24, 83, 44),
+            subsurface: const Color.fromRGBO(0, 0, 0, .22),
             h3Color: Colors.grey.shade400,
           ),
         ],
