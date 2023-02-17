@@ -27,6 +27,7 @@ class _HomePageState extends StateX<HomePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final elmtThemes = theme.extension<ElementThemes>();
+    final today = DateTime.now();
 
     return Scaffold(
       body: SafeArea(
@@ -160,14 +161,32 @@ class _HomePageState extends StateX<HomePage> {
                       child: FloatingActionButton(
                         shape: const CircleBorder(),
                         onPressed: () {
-                          // HACK
-                          ctrlr.addExpense(
-                            Expense(
-                                datetime: DateTime.now(),
+                          setState(() {
+                            ctrlr.addExpense(
+                              Expense(
+                                datetime: addMonth(today, -5),
                                 amount: 100,
-                                title: "Test",
-                                category: "Sports"),
-                          );
+                                title: "Test1",
+                                category: "Sports",
+                              ),
+                            );
+                            ctrlr.addExpense(
+                              Expense(
+                                datetime: addYear(today, -1),
+                                amount: 100,
+                                title: "Test2",
+                                category: "Sports",
+                              ),
+                            );
+                            ctrlr.addExpense(
+                              Expense(
+                                datetime: addDay(today, 3),
+                                amount: 100,
+                                title: "Test3",
+                                category: "Sports",
+                              ),
+                            );
+                          });
                         },
                         child: const Icon(Icons.add),
                       ),
@@ -265,5 +284,44 @@ Widget _radioElement<T>(
     onChanged: onChanged,
     activeWidget: createWidget(color: elmtThemes?.card ?? Colors.white),
     dormentWidget: createWidget(color: null, useShadow: false),
+  );
+}
+
+DateTime addDay(DateTime today, int amount) {
+  return DateTime(
+    today.year,
+    today.month,
+    today.day + amount,
+    today.hour,
+    today.minute,
+    today.second,
+    today.millisecond,
+    today.microsecond,
+  );
+}
+
+DateTime addMonth(DateTime today, int amount) {
+  return DateTime(
+    today.year,
+    today.month + amount,
+    today.day,
+    today.hour,
+    today.minute,
+    today.second,
+    today.millisecond,
+    today.microsecond,
+  );
+}
+
+DateTime addYear(DateTime today, int amount) {
+  return DateTime(
+    today.year + amount,
+    today.month,
+    today.day,
+    today.hour,
+    today.minute,
+    today.second,
+    today.millisecond,
+    today.microsecond,
   );
 }

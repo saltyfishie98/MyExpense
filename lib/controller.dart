@@ -1,45 +1,59 @@
+import 'dart:developer';
 import 'package:sqflite/sqflite.dart';
 import 'package:state_extended/state_extended.dart';
 
 class Controller extends StateXController {
+  void logExpenseData() {
+    log("Expense Data:");
+    for (final section in _model.expenseData) {
+      log("   ${section.first.datetime.toString()}");
+      for (final entry in section) {
+        log("       datetime: ${entry.datetime}, title: ${entry.title}");
+      }
+      log("\n");
+    }
+  }
+
   static Controller? _this;
 
   late _Model _model;
   late Database _database;
-  Database get database => _database;
+
+  int get dailySectionsCount => _model.expenseData.length;
 
   void setup({
     required Database database,
     required String categoryTable,
     required String expenseTable,
-  }) async {
+  }) {
     _database = database;
     _model = _Model(
       categoryTable: categoryTable,
       expenseTable: expenseTable,
     );
 
-    final dbCategories = await _database.query(
+    _database.query(_model.expenseTable).then((dbExpense) {
+      for (final data in dbExpense) {
+        _expenseDataAdd(
+          Expense(
+            datetime: DateTime.parse(data["datetime"].toString()),
+            amount: data["amount"] as int,
+            title: data["title"].toString(),
+            category: data["category"].toString(),
+          ),
+        );
+      }
+      logExpenseData();
+    });
+
+    _database.query(
       _model.categoryTable,
       columns: ["category"],
-    );
-
-    final dbExpense = await _database.query(_model.expenseTable);
-
-    for (final data in dbCategories) {
-      _model.categories.add(data["category"].toString());
-    }
-
-    for (final data in dbExpense) {
-      _model.expenseData.add(
-        Expense(
-          datetime: DateTime.parse(data["datetime"].toString()),
-          amount: data["amount"] as int,
-          title: data["title"].toString(),
-          category: data["category"].toString(),
-        ),
-      );
-    }
+    ).then((dbCategories) {
+      for (final data in dbCategories) {
+        _model.categories.add(data["category"].toString());
+      }
+    });
   }
 
   void addExpense(Expense expense) async {
@@ -56,7 +70,7 @@ class Controller extends StateXController {
     );
 
     for (final data in query) {
-      _model.expenseData.add(
+      _expenseDataAdd(
         Expense(
           datetime: DateTime.parse(data["datetime"].toString()),
           amount: data["amount"] as int,
@@ -67,8 +81,47 @@ class Controller extends StateXController {
     }
   }
 
+  void _expenseDataAdd(Expense expense) {
+    if (_model.expenseData.isEmpty) {
+      _model.expenseData.add([expense]);
+      return;
+    }
+
+    for (var i = 0; i < _model.expenseData.length; ++i) {
+      final sectionDate = _model.expenseData[i].first.datetime;
+      final current = expense.datetime;
+
+      if (current.year == sectionDate.year &&
+          current.month == sectionDate.month &&
+          current.day == sectionDate.day) {
+        _model.expenseData[i].add(expense);
+        break;
+      } else if (i + 1 == _model.expenseData.length) {
+        _model.expenseData.add([expense]);
+        break;
+      }
+    }
+
+    _model.expenseData.sort(
+      (a, b) => b.first.datetime.compareTo(a.first.datetime),
+    );
+  }
+
   factory Controller() => _this ??= Controller._();
   Controller._() : super();
+}
+
+class _Model {
+  _Model({
+    required this.categoryTable,
+    required this.expenseTable,
+  });
+
+  final String categoryTable;
+  final String expenseTable;
+
+  List<List<Expense>> expenseData = [];
+  List<String> categories = [];
 }
 
 class Expense {
@@ -83,17 +136,4 @@ class Expense {
   final int amount;
   final String title;
   final String category;
-}
-
-class _Model {
-  _Model({
-    required this.categoryTable,
-    required this.expenseTable,
-  });
-
-  final String categoryTable;
-  final String expenseTable;
-
-  List<Expense> expenseData = [];
-  List<String> categories = [];
 }
