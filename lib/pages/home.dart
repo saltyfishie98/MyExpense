@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:my_expense/controller.dart';
+import 'package:my_expense/pages/expense_entry.dart';
 import 'package:my_expense/theme.dart';
 import 'package:my_expense/elements/widget_radio.dart';
 import 'package:sticky_headers/sticky_headers.dart';
@@ -172,42 +173,49 @@ class _HomePageState extends StateX<HomePage> {
                       child: FloatingActionButton(
                         shape: const CircleBorder(),
                         onPressed: () async {
-                          await Future.wait([
-                            ctrlr.addExpense(
-                              Expense(
-                                datetime: today,
-                                amount: 100,
-                                title: "Test1",
-                                category: "Sports",
-                              ),
-                            ),
-                            ctrlr.addExpense(
-                              Expense(
-                                datetime: addMonth(today, -5),
-                                amount: 100,
-                                title: "Test1",
-                                category: "Sports",
-                              ),
-                            ),
-                            ctrlr.addExpense(
-                              Expense(
-                                datetime: addYear(today, -1),
-                                amount: 100,
-                                title: "Test2",
-                                category: "Sports",
-                              ),
-                            ),
-                            ctrlr.addExpense(
-                              Expense(
-                                datetime: addDay(today, -3),
-                                amount: 100,
-                                title: "Test3",
-                                category: "Sports",
-                              ),
-                            ),
-                          ]);
+                          // await Future.wait([
+                          //   ctrlr.addExpense(
+                          //     Expense(
+                          //       datetime: today,
+                          //       amount: 100,
+                          //       title: "Test1",
+                          //       category: "Sports",
+                          //     ),
+                          //   ),
+                          //   ctrlr.addExpense(
+                          //     Expense(
+                          //       datetime: addMonth(today, -5),
+                          //       amount: 100,
+                          //       title: "Test1",
+                          //       category: "Sports",
+                          //     ),
+                          //   ),
+                          //   ctrlr.addExpense(
+                          //     Expense(
+                          //       datetime: addYear(today, -1),
+                          //       amount: 100,
+                          //       title: "Test2",
+                          //       category: "Sports",
+                          //     ),
+                          //   ),
+                          //   ctrlr.addExpense(
+                          //     Expense(
+                          //       datetime: addDay(today, -3),
+                          //       amount: 100,
+                          //       title: "Test3",
+                          //       category: "Sports",
+                          //     ),
+                          //   ),
+                          // ]);
 
-                          setState(() {});
+                          setState(() {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ExpenseEntry(),
+                              ),
+                            );
+                          });
                         },
                         child: const Icon(Icons.add),
                       ),

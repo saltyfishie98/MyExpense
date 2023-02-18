@@ -20,6 +20,7 @@ class MainController extends StateXController {
   late Database _database;
 
   int get dailySectionsCount => _model.expenseData.length;
+  List<String> get categories => _model.categories;
 
   Future<void> setup({
     required Database database,

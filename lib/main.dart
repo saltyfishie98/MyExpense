@@ -1,3 +1,4 @@
+import "dart:developer";
 import "dart:io";
 
 import "package:desktop_window/desktop_window.dart";
@@ -24,10 +25,14 @@ void main() async {
 
   final db = await openDatabase(
     // TODO: Rename on release
-    "expense.sqlite",
-    version: 1,
-    onUpgrade: (db, oldVersion, newVersion) {},
+    "expenses.sqlite",
+    version: 3,
+    onUpgrade: (db, oldVersion, newVersion) {
+      log("database upgraded!");
+    },
     onCreate: (db, version) {
+      log("database created!");
+
       db.execute("CREATE TABLE $categoryTable(category TEXT PRIMARY KEY);");
       db.execute("""
         CREATE TABLE $expenseTable(
@@ -38,10 +43,14 @@ void main() async {
           FOREIGN KEY (category) REFERENCES Categories(category)
         );
       """);
+      db.insert(categoryTable, {"category": "Food"});
+      db.insert(categoryTable, {"category": "Shopping"});
+      db.insert(categoryTable, {"category": "Bicycle"});
+      db.insert(categoryTable, {"category": "Studies"});
     },
   );
 
-  await Controller().setup(
+  await MainController().setup(
     database: db,
     categoryTable: categoryTable,
     expenseTable: expenseTable,
