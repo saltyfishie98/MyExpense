@@ -1,5 +1,6 @@
 import "dart:io";
 
+import "package:desktop_window/desktop_window.dart";
 import "package:dynamic_color/dynamic_color.dart";
 import "package:flutter/material.dart";
 import "package:my_expense/controller.dart";
@@ -9,20 +10,21 @@ import "package:my_expense/theme.dart";
 import "package:sqflite_common_ffi/sqflite_ffi.dart";
 import "package:sqflite/sqflite.dart";
 
-void main() {
-  if (Platform.isWindows || Platform.isLinux) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
-
+void main() async {
   const expenseTable = "Expenses";
   const categoryTable = "Categories";
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  openDatabase(
+  if (Platform.isWindows || Platform.isLinux) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+    await DesktopWindow.setWindowSize(const Size(375, 375 * (18 / 9)));
+  }
+
+  final db = await openDatabase(
     // TODO: Rename on release
-    "test10.sqlite",
+    "expense.sqlite",
     version: 1,
     onUpgrade: (db, oldVersion, newVersion) {},
     onCreate: (db, version) {
@@ -37,13 +39,13 @@ void main() {
         );
       """);
     },
-  ).then((db) {
-    Controller().setup(
-      database: db,
-      categoryTable: categoryTable,
-      expenseTable: expenseTable,
-    );
-  });
+  );
+
+  await Controller().setup(
+    database: db,
+    categoryTable: categoryTable,
+    expenseTable: expenseTable,
+  );
 
   runApp(const MyApp());
 }
