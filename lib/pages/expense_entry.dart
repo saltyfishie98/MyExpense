@@ -32,12 +32,13 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
   Widget build(BuildContext context) {
     final entryFontSize = labelSize - 2;
     final entrySize = labelSize + 10;
+    const double entrySpacing = 17;
 
     return Scaffold(
       body: Center(
         child: SizedBox(
           width: 300,
-          height: 500,
+          height: 600,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -75,6 +76,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                           margin: const EdgeInsets.only(left: 5, right: 20),
                           height: entrySize,
                           child: TextField(
+                            textCapitalization: TextCapitalization.sentences,
                             textAlign: TextAlign.center,
                             decoration: const InputDecoration(
                               isDense: true,
@@ -88,7 +90,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                   ),
 
                   //// Category Select //////////////////////////
-                  const SizedBox(width: double.infinity, height: 10),
+                  const SizedBox(width: double.infinity, height: entrySpacing),
                   Row(
                     children: [
                       Expanded(
@@ -141,7 +143,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                   ),
 
                   //// Date /////////////////////////////////////
-                  const SizedBox(width: double.infinity, height: 10),
+                  const SizedBox(width: double.infinity, height: entrySpacing),
                   Row(
                     children: [
                       Expanded(
@@ -191,7 +193,9 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                     ],
                   ),
                   //// Amount ///////////////////////////////////
-                  const SizedBox(width: double.infinity, height: 10),
+                  const SizedBox(
+                      width: double.infinity,
+                      height: entrySpacing == 0 ? 0 : entrySpacing - 10),
                   Row(
                     children: [
                       Expanded(
@@ -233,12 +237,22 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                 ],
               ),
 
+              //// Add Button ///////////////////////////////
+              const SizedBox(width: double.infinity, height: 0),
+              FloatingActionButton(
+                heroTag: "add-button",
+                onPressed: () {},
+                shape: const CircleBorder(),
+                child: const Icon(Icons.check),
+              ),
+
               //// Back Button //////////////////////////////
               FloatingActionButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
                 shape: const CircleBorder(),
+                backgroundColor: Colors.redAccent,
                 child: const Icon(Icons.close),
               ),
             ],
@@ -247,18 +261,6 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       ),
     );
   }
-}
-
-Size _textSize(Text text) {
-  final TextPainter textPainter = TextPainter(
-    text: TextSpan(text: text.data, style: text.style),
-    maxLines: text.maxLines,
-    textDirection: ui.TextDirection.ltr,
-  )..layout(
-      minWidth: 0,
-      maxWidth: double.infinity,
-    );
-  return textPainter.size;
 }
 
 class PriceFormatter extends TextInputFormatter {
@@ -271,7 +273,7 @@ class PriceFormatter extends TextInputFormatter {
       amount = amount / 100;
 
       final out = TextEditingValue(
-        text: amount.toString(),
+        text: amount.toStringAsFixed(2),
         selection: TextSelection.collapsed(offset: newValue.selection.end + 1),
       );
       return out;
@@ -281,7 +283,7 @@ class PriceFormatter extends TextInputFormatter {
       amount = amount / 10;
 
       final out = TextEditingValue(
-        text: amount.toString(),
+        text: amount.toStringAsFixed(1),
         selection: TextSelection.collapsed(offset: newValue.selection.end + 1),
       );
       return out;
