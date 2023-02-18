@@ -18,7 +18,6 @@ enum Graph { daily, monthly, yearly }
 class _HomePageState extends StateX<HomePage> {
   Graph currentGraph = Graph.daily;
   late Controller ctrlr;
-  bool forUpdate = false;
 
   _HomePageState() : super(Controller()) {
     ctrlr = controller as Controller;
@@ -161,37 +160,35 @@ class _HomePageState extends StateX<HomePage> {
                       padding: const EdgeInsets.only(bottom: 30.0),
                       child: FloatingActionButton(
                         shape: const CircleBorder(),
-                        onPressed: () {
-                          // TODO: Fix No Update
+                        onPressed: () async {
+                          await Future.wait([
+                            ctrlr.addExpense(
+                              Expense(
+                                datetime: addMonth(today, -5),
+                                amount: 100,
+                                title: "Test1",
+                                category: "Sports",
+                              ),
+                            ),
+                            ctrlr.addExpense(
+                              Expense(
+                                datetime: addYear(today, -1),
+                                amount: 100,
+                                title: "Test2",
+                                category: "Sports",
+                              ),
+                            ),
+                            ctrlr.addExpense(
+                              Expense(
+                                datetime: addDay(today, 3),
+                                amount: 100,
+                                title: "Test3",
+                                category: "Sports",
+                              ),
+                            ),
+                          ]);
 
-                          ctrlr.addExpense(
-                            Expense(
-                              datetime: addMonth(today, -5),
-                              amount: 100,
-                              title: "Test1",
-                              category: "Sports",
-                            ),
-                          );
-                          ctrlr.addExpense(
-                            Expense(
-                              datetime: addYear(today, -1),
-                              amount: 100,
-                              title: "Test2",
-                              category: "Sports",
-                            ),
-                          );
-                          ctrlr.addExpense(
-                            Expense(
-                              datetime: addDay(today, 3),
-                              amount: 100,
-                              title: "Test3",
-                              category: "Sports",
-                            ),
-                          );
-
-                          setState(() {
-                            forUpdate = !forUpdate;
-                          });
+                          setState(() {});
                         },
                         child: const Icon(Icons.add),
                       ),

@@ -21,42 +21,42 @@ class Controller extends StateXController {
 
   int get dailySectionsCount => _model.expenseData.length;
 
-  void setup({
+  Future<void> setup({
     required Database database,
     required String categoryTable,
     required String expenseTable,
-  }) {
+  }) async {
     _database = database;
     _model = _Model(
       categoryTable: categoryTable,
       expenseTable: expenseTable,
     );
 
-    _database.query(_model.expenseTable).then((dbExpense) {
-      for (final data in dbExpense) {
-        _expenseDataAdd(
-          Expense(
-            datetime: DateTime.parse(data["datetime"].toString()),
-            amount: data["amount"] as int,
-            title: data["title"].toString(),
-            category: data["category"].toString(),
-          ),
-        );
-      }
-      logExpenseData();
-    });
+    final dbExpense = await _database.query(_model.expenseTable);
 
-    _database.query(
+    for (final data in dbExpense) {
+      _expenseDataAdd(
+        Expense(
+          datetime: DateTime.parse(data["datetime"].toString()),
+          amount: data["amount"] as int,
+          title: data["title"].toString(),
+          category: data["category"].toString(),
+        ),
+      );
+    }
+    logExpenseData();
+
+    final dbCategories = await _database.query(
       _model.categoryTable,
       columns: ["category"],
-    ).then((dbCategories) {
-      for (final data in dbCategories) {
-        _model.categories.add(data["category"].toString());
-      }
-    });
+    );
+
+    for (final data in dbCategories) {
+      _model.categories.add(data["category"].toString());
+    }
   }
 
-  void addExpense(Expense expense) async {
+  Future<void> addExpense(Expense expense) async {
     _database.insert(_model.expenseTable, {
       "datetime": "${expense.datetime}",
       "amount": expense.amount,
