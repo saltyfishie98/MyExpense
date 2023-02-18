@@ -32,7 +32,16 @@ class Controller extends StateXController {
       expenseTable: expenseTable,
     );
 
-    final dbExpense = await _database.query(_model.expenseTable);
+    final res = await Future.wait([
+      _database.query(_model.expenseTable),
+      _database.query(
+        _model.categoryTable,
+        columns: ["category"],
+      ),
+    ]);
+
+    final dbExpense = res.first;
+    final dbCategories = res.last;
 
     for (final data in dbExpense) {
       _expenseDataAdd(
@@ -44,16 +53,12 @@ class Controller extends StateXController {
         ),
       );
     }
-    logExpenseData();
-
-    final dbCategories = await _database.query(
-      _model.categoryTable,
-      columns: ["category"],
-    );
 
     for (final data in dbCategories) {
       _model.categories.add(data["category"].toString());
     }
+
+    logExpenseData();
   }
 
   Future<void> addExpense(Expense expense) async {
