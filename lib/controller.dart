@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:sqflite/sqflite.dart';
 import 'package:state_extended/state_extended.dart';
 
-class Controller extends StateXController {
+class MainController extends StateXController {
   void logExpenseData() {
     log("Expense Data:");
     for (final section in _model.expenseData) {
@@ -14,7 +14,7 @@ class Controller extends StateXController {
     }
   }
 
-  static Controller? _this;
+  static MainController? _this;
 
   _Model _model = _Model(categoryTable: "", expenseTable: "");
   late Database _database;
@@ -116,8 +116,8 @@ class Controller extends StateXController {
     );
   }
 
-  factory Controller() => _this ??= Controller._();
-  Controller._() : super();
+  factory MainController() => _this ??= MainController._();
+  MainController._() : super();
 }
 
 class _Model {

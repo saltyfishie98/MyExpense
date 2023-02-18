@@ -17,10 +17,10 @@ enum Graph { daily, monthly, yearly }
 
 class _HomePageState extends StateX<HomePage> {
   Graph currentGraph = Graph.daily;
-  late Controller ctrlr;
+  late MainController ctrlr;
 
-  _HomePageState() : super(Controller()) {
-    ctrlr = controller as Controller;
+  _HomePageState() : super(MainController()) {
+    ctrlr = controller as MainController;
   }
 
   @override
