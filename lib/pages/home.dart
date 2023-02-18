@@ -131,8 +131,19 @@ class _HomePageState extends StateX<HomePage> {
                       itemCount: ctrlr.dailySectionsCount,
                       itemBuilder: (context, index) {
                         final data = ctrlr.dailyDataAt(index);
-                        final datetime =
-                            DateFormat('MMM dd').format(data.first.datetime);
+                        final dataDT = data.first.datetime;
+                        final bool isToday = dataDT.year == today.year &&
+                            dataDT.month == today.month &&
+                            dataDT.day == today.day;
+
+                        late String datetime;
+                        if (dataDT.year == today.year) {
+                          datetime = isToday
+                              ? "Today"
+                              : DateFormat('MMM dd').format(dataDT);
+                        } else {
+                          datetime = DateFormat('MMM dd, yyyy').format(dataDT);
+                        }
 
                         return StickyHeader(
                           header: Container(
@@ -144,7 +155,7 @@ class _HomePageState extends StateX<HomePage> {
                               child: Text(
                                 datetime,
                                 style: TextStyle(
-                                  fontSize: 17,
+                                  fontSize: 15,
                                   color: elmtThemes?.h3Color,
                                 ),
                               ),
@@ -164,6 +175,14 @@ class _HomePageState extends StateX<HomePage> {
                           await Future.wait([
                             ctrlr.addExpense(
                               Expense(
+                                datetime: today,
+                                amount: 100,
+                                title: "Test1",
+                                category: "Sports",
+                              ),
+                            ),
+                            ctrlr.addExpense(
+                              Expense(
                                 datetime: addMonth(today, -5),
                                 amount: 100,
                                 title: "Test1",
@@ -180,7 +199,7 @@ class _HomePageState extends StateX<HomePage> {
                             ),
                             ctrlr.addExpense(
                               Expense(
-                                datetime: addDay(today, 3),
+                                datetime: addDay(today, -3),
                                 amount: 100,
                                 title: "Test3",
                                 category: "Sports",
