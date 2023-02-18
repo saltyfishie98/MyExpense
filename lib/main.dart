@@ -4,6 +4,7 @@ import "dart:io";
 import "package:desktop_window/desktop_window.dart";
 import "package:dynamic_color/dynamic_color.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:my_expense/controller.dart";
 import "package:my_expense/pages/home.dart";
 import "package:my_expense/theme.dart";
@@ -64,6 +65,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
     return DynamicColorBuilder(
       builder: (ColorScheme? deviceLight, ColorScheme? deviceDark) {
         // setup themes
