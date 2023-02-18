@@ -4,28 +4,38 @@ import 'package:intl/intl.dart';
 import 'package:my_expense/controller.dart';
 import 'package:state_extended/state_extended.dart';
 import 'package:tuple/tuple.dart';
-import 'dart:ui' as ui;
 
 typedef EntryRow = Tuple3<String, Widget, double>;
 
 class ExpenseEntry extends StatefulWidget {
-  const ExpenseEntry({super.key});
+  const ExpenseEntry({
+    super.key,
+    required this.onNewExpense,
+  });
 
+  final Function() onNewExpense;
   @override
   State createState() => _ExpenseEntryState();
 }
 
 class _ExpenseEntryState extends StateX<ExpenseEntry> {
-  late MainController ctrlr;
-  String selectedCategory = "";
-  DateTime _selectedDate = DateTime.now();
   double labelSize = 22;
   int entryFlexValue = 5;
   int labelFlexValue = 3;
 
+  //// States ///////////////////////////////////////////////
+
+  String _selectedCategory = "";
+  DateTime _selectedDate = DateTime.now();
+  late MainController _ctrlr;
+  final _titleInputCtrl = TextEditingController();
+  final _amountInputCtrl = TextEditingController();
+
+  //// Implementations //////////////////////////////////////
+
   _ExpenseEntryState() : super(MainController()) {
-    ctrlr = controller as MainController;
-    selectedCategory = ctrlr.categories.first;
+    _ctrlr = controller as MainController;
+    _selectedCategory = _ctrlr.categories.first;
   }
 
   @override
@@ -44,6 +54,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
             children: [
               const Align(
                   //// Add Expense //////////////////////////////
+
                   alignment: FractionalOffset.topLeft,
                   child: Text(
                     "Add\nExpense:",
@@ -57,6 +68,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
               Column(
                 children: [
                   //// Title ////////////////////////////////////
+
                   Row(
                     children: [
                       Expanded(
@@ -76,6 +88,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                           margin: const EdgeInsets.only(left: 5, right: 20),
                           height: entrySize,
                           child: TextField(
+                            controller: _titleInputCtrl,
                             textCapitalization: TextCapitalization.sentences,
                             textAlign: TextAlign.center,
                             decoration: const InputDecoration(
@@ -90,6 +103,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                   ),
 
                   //// Category Select //////////////////////////
+
                   const SizedBox(width: double.infinity, height: entrySpacing),
                   Row(
                     children: [
@@ -110,16 +124,16 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                           margin: const EdgeInsets.only(left: 5, right: 0),
                           height: entrySize,
                           child: DropdownButton<String>(
-                            value: selectedCategory,
+                            value: _selectedCategory,
                             underline: const SizedBox(),
                             isExpanded: true,
                             onChanged: (String? value) {
                               setState(() {
-                                selectedCategory = value!;
+                                _selectedCategory = value!;
                               });
                             },
                             items:
-                                ctrlr.categories.map<DropdownMenuItem<String>>(
+                                _ctrlr.categories.map<DropdownMenuItem<String>>(
                               (String value) {
                                 return DropdownMenuItem<String>(
                                   value: value,
@@ -143,6 +157,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                   ),
 
                   //// Date /////////////////////////////////////
+
                   const SizedBox(width: double.infinity, height: entrySpacing),
                   Row(
                     children: [
@@ -163,18 +178,27 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                           margin: const EdgeInsets.only(left: 5, right: 0),
                           height: entrySize,
                           child: GestureDetector(
-                            onTap: () {
+                            onTap: () async {
                               Feedback.forTap(context);
-                              showDatePicker(
+                              var pickedDate = await showDatePicker(
                                 context: context,
                                 initialDate: DateTime.now(),
                                 firstDate: DateTime(1950),
                                 lastDate: DateTime.now(),
-                              ).then((pickedDate) {
-                                if (pickedDate != null) {
-                                  setState(() => _selectedDate = pickedDate);
-                                }
-                              });
+                              );
+
+                              if (pickedDate == null) {
+                                return;
+                              }
+
+                              final now = DateTime.now();
+                              if (pickedDate.year == now.year &&
+                                  pickedDate.month == now.month &&
+                                  pickedDate.day == now.day) {
+                                pickedDate = now;
+                              }
+
+                              setState(() => _selectedDate = pickedDate!);
                             },
                             child: Align(
                               alignment: FractionalOffset.bottomCenter,
@@ -192,7 +216,9 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                       ),
                     ],
                   ),
+
                   //// Amount ///////////////////////////////////
+
                   const SizedBox(
                       width: double.infinity,
                       height: entrySpacing == 0 ? 0 : entrySpacing - 10),
@@ -215,6 +241,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                           margin: const EdgeInsets.only(left: 5, right: 20),
                           height: entrySize + 50,
                           child: TextField(
+                            controller: _amountInputCtrl,
                             keyboardType:
                                 const TextInputType.numberWithOptions(),
                             textAlign: TextAlign.right,
@@ -238,15 +265,29 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
               ),
 
               //// Add Button ///////////////////////////////
+
               const SizedBox(width: double.infinity, height: 0),
               FloatingActionButton(
                 heroTag: "add-button",
-                onPressed: () {},
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await _ctrlr.addExpense(
+                    Expense(
+                      datetime: _selectedDate,
+                      amount:
+                          (double.parse(_amountInputCtrl.text) * 100).toInt(),
+                      title: _titleInputCtrl.text,
+                      category: _selectedCategory,
+                    ),
+                  );
+                  widget.onNewExpense();
+                },
                 shape: const CircleBorder(),
                 child: const Icon(Icons.check),
               ),
 
               //// Back Button //////////////////////////////
+
               FloatingActionButton(
                 onPressed: () {
                   Navigator.pop(context);

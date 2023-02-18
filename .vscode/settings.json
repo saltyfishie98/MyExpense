@@ -9,5 +9,5 @@
             "database": "${workspaceFolder:my_expense}/.dart_tool/sqflite_common_ffi/databases/my_expense.db"
         }
     ],
-    "autoHide.autoHidePanel": false
+    "autoHide.autoHidePanel": true
 }
