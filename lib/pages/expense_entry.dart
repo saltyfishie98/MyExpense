@@ -40,7 +40,10 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
   DateTime _selectedDate = DateTime.now();
   bool _titleFilled = true;
   bool _amountFilled = true;
+  TextEditingController titleInputCtrl = TextEditingController();
+  TextEditingController amountInputCtrl = TextEditingController(text: "0.00");
   late MainController _ctrlr;
+  bool edittingError = false;
 
   //// Implementations //////////////////////////////////////
 
@@ -55,32 +58,42 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
     final entryCellHeight = widget.labelFontSize + 10;
     const double entrySpacing = 17;
 
-    late TextEditingController titleInputCtrl;
-    late TextEditingController amountInputCtrl;
+    //// Setup /////////////////////////////////////////////////////////////////////////////////////
 
-    if (widget.expense != null) {
+    if (widget.expense != null && !edittingError) {
       _selectedCategory = widget.expense!.category;
       _selectedDate = widget.expense!.datetime;
       titleInputCtrl = TextEditingController(text: widget.expense!.title);
       amountInputCtrl = TextEditingController(
         text: (widget.expense!.amount / 100).toStringAsFixed(2),
       );
-    } else {
-      titleInputCtrl = TextEditingController();
-      amountInputCtrl = TextEditingController();
     }
 
-    void addExpenseCallback() async {
+    amountInputCtrl.addListener(() {
+      amountInputCtrl.selection = TextSelection.fromPosition(TextPosition(
+        offset: amountInputCtrl.text.length,
+      ));
+    });
+
+    //// Helpers ///////////////////////////////////////////////////////////////////////////////////
+
+    bool notValidInputs() {
       final emptyTitle = titleInputCtrl.text.isEmpty;
-      final emptyAmount = amountInputCtrl.text.isEmpty;
+      final emptyAmount = amountInputCtrl.text == "0.00";
 
       if (emptyTitle || emptyAmount) {
         setState(() {
           emptyTitle ? _titleFilled = false : _titleFilled = true;
           emptyAmount ? _amountFilled = false : _amountFilled = true;
+          edittingError = true;
         });
-        return;
+        return true;
       }
+      return false;
+    }
+
+    void addExpenseCallback() async {
+      if (notValidInputs()) return;
 
       Navigator.pop(context);
       await _ctrlr.addExpense(
@@ -97,19 +110,9 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
     }
 
     void editExpenseCallback() async {
-      final emptyTitle = titleInputCtrl.text.isEmpty;
-      final emptyAmount = amountInputCtrl.text.isEmpty;
-
-      if (emptyTitle || emptyAmount) {
-        setState(() {
-          emptyTitle ? _titleFilled = false : _titleFilled = true;
-          emptyAmount ? _amountFilled = false : _amountFilled = true;
-        });
-        return;
-      }
+      if (notValidInputs()) return;
 
       Navigator.pop(context);
-
       await _ctrlr.editExpense(
         oldExpense: widget.expense!,
         newExpense: Expense(
@@ -124,6 +127,8 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
 
       widget.onEditExpense!();
     }
+
+    //// Widget ////////////////////////////////////////////////////////////////////////////////////
 
     return Scaffold(
       body: Center(
@@ -409,27 +414,15 @@ class PriceFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.text == "0") return oldValue;
-    if (newValue.text.length > 3) {
-      var amount = double.parse(newValue.text);
-      amount = amount / 100;
-
-      final out = TextEditingValue(
-        text: amount.toStringAsFixed(2),
+    if (newValue.text == "") {
+      return TextEditingValue(
+        text: "0.00",
         selection: TextSelection.collapsed(offset: newValue.selection.end + 1),
       );
-      return out;
     }
-    if (newValue.text.length == 3) {
-      var amount = double.parse(newValue.text);
-      amount = amount / 10;
-
-      final out = TextEditingValue(
-        text: amount.toStringAsFixed(1),
-        selection: TextSelection.collapsed(offset: newValue.selection.end + 1),
-      );
-      return out;
-    }
-    return newValue;
+    return TextEditingValue(
+      text: (double.parse(newValue.text) / 100).toStringAsFixed(2),
+      selection: TextSelection.collapsed(offset: newValue.selection.end + 1),
+    );
   }
 }
