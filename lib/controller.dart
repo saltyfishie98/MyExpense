@@ -120,6 +120,31 @@ class MainController extends StateXController {
     }
   }
 
+  List<int> getThisWeekDailyTotal() {
+    var out = [0, 0, 0, 0, 0, 0, 0];
+
+    if (_model.expenseData.isEmpty) return out;
+
+    var i = 0;
+    while (true) {
+      final dailyExpenses = _model.expenseData[i];
+
+      var total = 0;
+      for (var element in dailyExpenses) {
+        total += element.amount;
+      }
+
+      out[6 - i] = total;
+
+      ++i;
+
+      if (dailyExpenses.first.datetime.weekday == 1) break;
+      if (_model.expenseData.length == i) break;
+    }
+
+    return out;
+  }
+
   List<Expense> dailyDataAt(int index) {
     return _model.expenseData[index];
   }

@@ -26,7 +26,7 @@ void main() async {
 
   final db = await openDatabase(
     // TODO: Rename on release
-    "expenses123.sqlite",
+    "expenses3.sqlite",
     version: 3,
     onUpgrade: (db, oldVersion, newVersion) {
       log("database upgraded!");

@@ -31,6 +31,8 @@ class _HomePageState extends StateX<HomePage> {
     final elmtThemes = theme.extension<ElementThemes>();
     final today = DateTime.now();
 
+    final dailyTotal = ctrlr.getThisWeekDailyTotal();
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -70,12 +72,24 @@ class _HomePageState extends StateX<HomePage> {
                   padding: const EdgeInsets.all(15.0),
                   child: Column(
                     children: [
-                      const Align(
-                        alignment: FractionalOffset.topRight,
-                        child: Text(
-                          "\$ 300",
-                          style: TextStyle(fontSize: 30),
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          const SizedBox(
+                            height: 30,
+                            child: Align(
+                              alignment: FractionalOffset.bottomRight,
+                              child: Text(
+                                "Total: ",
+                                style: TextStyle(fontSize: 17),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            "\$${(dailyTotal.reduce((a, b) => a + b) / 100).toStringAsFixed(2)}",
+                            style: const TextStyle(fontSize: 30),
+                          ),
+                        ],
                       ),
                       const SizedBox(width: double.infinity, height: 10),
                       Expanded(
@@ -85,8 +99,9 @@ class _HomePageState extends StateX<HomePage> {
                           child: BarChart(
                             BarChartData(
                               alignment: BarChartAlignment.spaceBetween,
-                              barGroups: _weeklyChart(
+                              barGroups: _thisWeekChart(
                                 context,
+                                dailyTotal: dailyTotal,
                                 controller: ctrlr,
                               ),
                               titlesData: FlTitlesData(
@@ -96,13 +111,13 @@ class _HomePageState extends StateX<HomePage> {
                                     showTitles: true,
                                     getTitlesWidget: (value, meta) {
                                       final days = [
-                                        "Sun",
                                         "Mon",
                                         "Tue",
                                         "Wed",
                                         "Thu",
                                         "Fri",
                                         "Sat",
+                                        "Sun",
                                       ];
 
                                       return Align(
@@ -268,8 +283,9 @@ class _HomePageState extends StateX<HomePage> {
   }
 }
 
-List<BarChartGroupData> _weeklyChart(
+List<BarChartGroupData> _thisWeekChart(
   BuildContext context, {
+  required List<int> dailyTotal,
   required MainController controller,
 }) {
   var out = <BarChartGroupData>[];
@@ -277,7 +293,7 @@ List<BarChartGroupData> _weeklyChart(
   for (var i = 0; i < 7; ++i) {
     out.add(BarChartGroupData(
       x: i,
-      barRods: [BarChartRodData(toY: 6)],
+      barRods: [BarChartRodData(toY: dailyTotal[i].toDouble() / 100)],
     ));
   }
 
