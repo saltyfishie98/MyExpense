@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:my_expense/controller.dart';
@@ -54,7 +55,7 @@ class _HomePageState extends StateX<HomePage> {
               const SizedBox(width: double.infinity, height: 15),
               Container(
                 width: double.infinity,
-                height: 200,
+                height: 210,
                 decoration: BoxDecoration(
                   color: elmtThemes?.card,
                   borderRadius: BorderRadius.circular(20),
@@ -64,6 +65,75 @@ class _HomePageState extends StateX<HomePage> {
                       color: elmtThemes?.shadow ?? Colors.black,
                     ),
                   ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    children: [
+                      const Align(
+                        alignment: FractionalOffset.topRight,
+                        child: Text(
+                          "\$ 300",
+                          style: TextStyle(fontSize: 30),
+                        ),
+                      ),
+                      const SizedBox(width: double.infinity, height: 10),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          width: double.infinity,
+                          child: BarChart(
+                            BarChartData(
+                              alignment: BarChartAlignment.spaceBetween,
+                              barGroups: _weeklyChart(
+                                context,
+                                controller: ctrlr,
+                              ),
+                              titlesData: FlTitlesData(
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    reservedSize: 24,
+                                    showTitles: true,
+                                    getTitlesWidget: (value, meta) {
+                                      final days = [
+                                        "Sun",
+                                        "Mon",
+                                        "Tue",
+                                        "Wed",
+                                        "Thu",
+                                        "Fri",
+                                        "Sat",
+                                      ];
+
+                                      return Align(
+                                        alignment:
+                                            FractionalOffset.bottomCenter,
+                                        child: Text(
+                                          days[value.toInt()],
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                rightTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                topTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                              ),
+                              borderData: FlBorderData(show: false),
+                              gridData: FlGridData(show: false),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
@@ -86,7 +156,7 @@ class _HomePageState extends StateX<HomePage> {
                       Expanded(
                         child: _radioElement(
                           context,
-                          title: "Daily",
+                          title: "Weekly",
                           value: Graph.daily,
                           groupValue: currentGraph,
                           onChanged: (current) => setState(() {
@@ -196,6 +266,22 @@ class _HomePageState extends StateX<HomePage> {
       ),
     );
   }
+}
+
+List<BarChartGroupData> _weeklyChart(
+  BuildContext context, {
+  required MainController controller,
+}) {
+  var out = <BarChartGroupData>[];
+
+  for (var i = 0; i < 7; ++i) {
+    out.add(BarChartGroupData(
+      x: i,
+      barRods: [BarChartRodData(toY: 6)],
+    ));
+  }
+
+  return out;
 }
 
 List<Widget> _dailyEntries(
