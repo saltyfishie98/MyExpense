@@ -15,14 +15,16 @@ class HomePage extends StatefulWidget {
   State createState() => _HomePageState();
 }
 
-enum Graph { daily, monthly, yearly }
+enum GraphMode { daily, monthly, yearly }
 
 class _HomePageState extends StateX<HomePage> {
-  Graph currentGraph = Graph.daily;
+  GraphMode currentGraph = GraphMode.daily;
   late MainController ctrlr;
+  ExpenseChart? expenseChart;
 
   _HomePageState() : super(MainController()) {
     ctrlr = controller as MainController;
+    expenseChart = ExpenseChart(dailyTotal: ctrlr.getThisWeekDailyTotal());
   }
 
   @override
@@ -30,8 +32,6 @@ class _HomePageState extends StateX<HomePage> {
     final theme = Theme.of(context);
     final elmtThemes = theme.extension<ElementThemes>();
     final today = DateTime.now();
-
-    final dailyTotal = ctrlr.getThisWeekDailyTotal();
 
     return Scaffold(
       body: SafeArea(
@@ -57,103 +57,7 @@ class _HomePageState extends StateX<HomePage> {
               //// Graph ///////////////////////////////////////////////////////////////////////////
 
               const SizedBox(width: double.infinity, height: 15),
-              Container(
-                width: double.infinity,
-                height: 210,
-                decoration: BoxDecoration(
-                  color: elmtThemes?.card,
-                  borderRadius:
-                      BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
-                  boxShadow: [
-                    BoxShadow(
-                      blurRadius: 7,
-                      color: elmtThemes?.shadow ?? Colors.black,
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          const SizedBox(
-                            height: 30,
-                            child: Align(
-                              alignment: FractionalOffset.bottomRight,
-                              child: Text(
-                                "Total: ",
-                                style: TextStyle(fontSize: 17),
-                              ),
-                            ),
-                          ),
-                          Text(
-                            "\$${(dailyTotal.reduce((a, b) => a + b) / 100).toStringAsFixed(2)}",
-                            style: const TextStyle(fontSize: 30),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: double.infinity, height: 10),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          width: double.infinity,
-                          child: BarChart(
-                            BarChartData(
-                              alignment: BarChartAlignment.spaceBetween,
-                              barGroups: _thisWeekChart(
-                                context,
-                                dailyTotal: dailyTotal,
-                                controller: ctrlr,
-                              ),
-                              titlesData: FlTitlesData(
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    reservedSize: 24,
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      final days = [
-                                        "Mon",
-                                        "Tue",
-                                        "Wed",
-                                        "Thu",
-                                        "Fri",
-                                        "Sat",
-                                        "Sun",
-                                      ];
-
-                                      return Align(
-                                        alignment:
-                                            FractionalOffset.bottomCenter,
-                                        child: Text(
-                                          days[value.toInt()],
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                topTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                              ),
-                              borderData: FlBorderData(show: false),
-                              gridData: FlGridData(show: false),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              expenseChart!,
 
               //// Selection ///////////////////////////////////////////////////////////////////////
 
@@ -176,7 +80,7 @@ class _HomePageState extends StateX<HomePage> {
                         child: _radioElement(
                           context,
                           title: "Week",
-                          value: Graph.daily,
+                          value: GraphMode.daily,
                           groupValue: currentGraph,
                           onChanged: (current) => setState(() {
                             currentGraph = current!;
@@ -187,7 +91,7 @@ class _HomePageState extends StateX<HomePage> {
                         child: _radioElement(
                           context,
                           title: "Month",
-                          value: Graph.monthly,
+                          value: GraphMode.monthly,
                           groupValue: currentGraph,
                           onChanged: (current) => setState(() {
                             currentGraph = current!;
@@ -198,7 +102,7 @@ class _HomePageState extends StateX<HomePage> {
                         child: _radioElement(
                           context,
                           title: "Year",
-                          value: Graph.yearly,
+                          value: GraphMode.yearly,
                           groupValue: currentGraph,
                           onChanged: (current) => setState(() {
                             currentGraph = current!;
@@ -249,6 +153,8 @@ class _HomePageState extends StateX<HomePage> {
                           //// Entry List //////////////////////////////////////////////////////////
                           content: _dailyEntries(
                             context,
+
+                            //// Press to edit entry ///////////////////////////////////////////////
                             onLongPress: (expense) {
                               Navigator.push(
                                 context,
@@ -256,7 +162,14 @@ class _HomePageState extends StateX<HomePage> {
                                   builder: (context) => ExpenseEntry(
                                     "Edit\nExpense:",
                                     onNewExpense: null,
-                                    onEditExpense: () => setState(() {}),
+                                    onEditExpense: () => setState(
+                                      () {
+                                        expenseChart = ExpenseChart(
+                                          dailyTotal:
+                                              ctrlr.getThisWeekDailyTotal(),
+                                        );
+                                      },
+                                    ),
                                     expense: expense,
                                   ),
                                 ),
@@ -274,6 +187,8 @@ class _HomePageState extends StateX<HomePage> {
                       padding: const EdgeInsets.only(bottom: 30.0),
                       child: FloatingActionButton(
                         shape: const CircleBorder(),
+
+                        //// Press to add entry ////////////////////////////////////////////////////
                         onPressed: () async {
                           setState(() {
                             Navigator.push(
@@ -281,7 +196,14 @@ class _HomePageState extends StateX<HomePage> {
                               MaterialPageRoute(
                                 builder: (context) => ExpenseEntry(
                                   "Add\nExpense:",
-                                  onNewExpense: () => setState(() {}),
+                                  onNewExpense: () => setState(
+                                    () {
+                                      expenseChart = ExpenseChart(
+                                        dailyTotal:
+                                            ctrlr.getThisWeekDailyTotal(),
+                                      );
+                                    },
+                                  ),
                                   onEditExpense: null,
                                 ),
                               ),
@@ -302,27 +224,7 @@ class _HomePageState extends StateX<HomePage> {
   }
 }
 
-List<BarChartGroupData> _thisWeekChart(
-  BuildContext context, {
-  required List<int> dailyTotal,
-  required MainController controller,
-}) {
-  var out = <BarChartGroupData>[];
-
-  for (var i = 0; i < 7; ++i) {
-    out.add(BarChartGroupData(
-      x: i,
-      barRods: [
-        BarChartRodData(
-          toY: dailyTotal[i].toDouble() / 100,
-          color: Theme.of(context).extension<ElementThemes>()?.onCard,
-        )
-      ],
-    ));
-  }
-
-  return out;
-}
+//// Radio Selector ////////////////////////////////////////////////////////////////////////////////
 
 Widget _radioElement<T>(
   BuildContext context, {
@@ -483,4 +385,133 @@ Widget _dailyEntries(
   return Column(
     children: entryList,
   );
+}
+
+//// Expense Chart /////////////////////////////////////////////////////////////////////////////////
+
+class ExpenseChart extends StatelessWidget {
+  const ExpenseChart({super.key, required this.dailyTotal});
+
+  final List<int> dailyTotal;
+
+  @override
+  Widget build(BuildContext context) {
+    final elmtThemes = Theme.of(context).extension<ElementThemes>();
+
+    return Container(
+      width: double.infinity,
+      height: 210,
+      decoration: BoxDecoration(
+        color: elmtThemes?.card,
+        borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 7,
+            color: elmtThemes?.shadow ?? Colors.black,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const SizedBox(
+                  height: 30,
+                  child: Align(
+                    alignment: FractionalOffset.bottomRight,
+                    child: Text(
+                      "Total: ",
+                      style: TextStyle(fontSize: 17),
+                    ),
+                  ),
+                ),
+                Text(
+                  "\$${(dailyTotal.reduce((a, b) => a + b) / 100).toStringAsFixed(2)}",
+                  style: const TextStyle(fontSize: 30),
+                ),
+              ],
+            ),
+            const SizedBox(width: double.infinity, height: 10),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                width: double.infinity,
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceBetween,
+                    barGroups: _thisWeekChart(
+                      context,
+                      dailyTotal: dailyTotal,
+                    ),
+                    titlesData: FlTitlesData(
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          reservedSize: 24,
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            final days = [
+                              "Mon",
+                              "Tue",
+                              "Wed",
+                              "Thu",
+                              "Fri",
+                              "Sat",
+                              "Sun",
+                            ];
+
+                            return Align(
+                              alignment: FractionalOffset.bottomCenter,
+                              child: Text(
+                                days[value.toInt()],
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    gridData: FlGridData(show: false),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+List<BarChartGroupData> _thisWeekChart(
+  BuildContext context, {
+  required List<int> dailyTotal,
+}) {
+  var out = <BarChartGroupData>[];
+
+  for (var i = 0; i < 7; ++i) {
+    out.add(BarChartGroupData(
+      x: i,
+      barRods: [
+        BarChartRodData(
+          toY: dailyTotal[i].toDouble() / 100,
+          color: Theme.of(context).extension<ElementThemes>()?.onCard,
+        )
+      ],
+    ));
+  }
+
+  return out;
 }
