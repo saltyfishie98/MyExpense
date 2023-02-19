@@ -28,10 +28,11 @@ class AppTheme {
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
             card: lightScheme.inversePrimary,
+            onCard: lightScheme.primary,
             shadow: Colors.grey.shade400,
             accent: lightScheme.surfaceVariant,
             subsurface: Colors.grey.shade200,
-            h3Color: Colors.grey.shade400,
+            h3Color: Colors.grey.shade500,
           ),
         ],
       );
@@ -43,16 +44,17 @@ class AppTheme {
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
             card: darkScheme.inversePrimary,
+            onCard: darkScheme.primary,
             shadow: Colors.black,
             accent: darkScheme.surfaceVariant,
             subsurface: const Color.fromRGBO(0, 0, 0, .22),
-            h3Color: Colors.grey.shade400,
+            h3Color: Colors.grey.shade600,
           ),
         ],
       );
       //
     } else {
-      const swatchColor = Color.fromARGB(255, 35, 112, 61);
+      const swatchColor = Color(0xff23703d);
 
       Map<int, Color> swatch = {
         50: swatchColor.withOpacity(.1),
@@ -71,38 +73,61 @@ class AppTheme {
 
       lightScheme = ColorScheme.fromSwatch(
         primarySwatch: primaryColor,
-      ).copyWith(background: Colors.grey.shade300).harmonized();
+      )
+          .copyWith(
+            brightness: Brightness.light,
+            primary: const Color.fromARGB(255, 55, 177, 95),
+            onPrimary: const Color.fromARGB(255, 37, 121, 66),
+            primaryContainer: const Color(0xff23703d),
+            onPrimaryContainer: const Color(0xff23703d),
+            secondary: const Color.fromARGB(255, 51, 161, 87),
+            onSecondary: const Color.fromARGB(255, 214, 214, 214),
+            surfaceVariant: const Color.fromARGB(255, 83, 204, 123),
+            background: Colors.grey.shade300,
+          )
+          .harmonized();
 
       darkScheme = ColorScheme.fromSwatch(
         primarySwatch: primaryColor,
         brightness: Brightness.dark,
-      ).copyWith(background: Colors.grey.shade900).harmonized();
+      )
+          .copyWith(
+            brightness: Brightness.dark,
+            primary: const Color(0xff23703d),
+            onPrimary: const Color.fromARGB(255, 22, 71, 38),
+            primaryContainer: const Color(0xff23703d),
+            onPrimaryContainer: const Color(0xff23703d),
+            secondary: const Color(0xff23703d),
+            onSecondary: const Color.fromARGB(255, 199, 199, 199),
+            surfaceVariant: const Color.fromARGB(255, 20, 73, 38),
+          )
+          .harmonized();
 
       AppTheme.light = ThemeData(
-        useMaterial3: _useMaterial3,
         colorScheme: lightScheme,
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
-            card: const Color.fromARGB(255, 36, 211, 95),
+            card: lightScheme.primary,
+            onCard: lightScheme.onPrimary,
             shadow: Colors.grey.shade400,
-            accent: const Color.fromARGB(255, 119, 204, 147),
+            accent: lightScheme.surfaceVariant,
             subsurface: Colors.grey.shade200,
-            h3Color: Colors.grey.shade400,
+            h3Color: Colors.grey.shade500,
           ),
         ],
       );
 
       AppTheme.dark = ThemeData(
-        useMaterial3: _useMaterial3,
         colorScheme: darkScheme,
         brightness: Brightness.dark,
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
-            card: const Color.fromARGB(255, 35, 112, 61),
+            card: darkScheme.primary,
+            onCard: darkScheme.onPrimary,
             shadow: Colors.black,
-            accent: const Color.fromARGB(255, 24, 83, 44),
+            accent: darkScheme.surfaceVariant,
             subsurface: const Color.fromRGBO(0, 0, 0, .22),
-            h3Color: Colors.grey.shade400,
+            h3Color: Colors.grey.shade600,
           ),
         ],
       );
@@ -119,6 +144,7 @@ class AppTheme {
 class ElementThemes extends ThemeExtension<ElementThemes> {
   const ElementThemes({
     required this.card,
+    required this.onCard,
     required this.shadow,
     required this.accent,
     required this.subsurface,
@@ -126,6 +152,7 @@ class ElementThemes extends ThemeExtension<ElementThemes> {
   });
 
   final Color card;
+  final Color onCard;
   final Color shadow;
   final Color accent;
   final Color subsurface;
@@ -134,6 +161,7 @@ class ElementThemes extends ThemeExtension<ElementThemes> {
   @override
   ThemeExtension<ElementThemes> copyWith({
     Color? card,
+    Color? onCard,
     Color? shadow,
     Color? accent,
     Color? subsurface,
@@ -141,6 +169,7 @@ class ElementThemes extends ThemeExtension<ElementThemes> {
   }) {
     return ElementThemes(
       card: card ?? this.card,
+      onCard: onCard ?? this.onCard,
       shadow: shadow ?? this.shadow,
       accent: accent ?? this.accent,
       subsurface: subsurface ?? this.subsurface,
@@ -157,6 +186,7 @@ class ElementThemes extends ThemeExtension<ElementThemes> {
 
     return ElementThemes(
       card: Color.lerp(card, other.card, t)!,
+      onCard: Color.lerp(onCard, other.onCard, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
       accent: Color.lerp(accent, other.accent, t)!,
       subsurface: Color.lerp(subsurface, other.subsurface, t)!,
