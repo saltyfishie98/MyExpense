@@ -293,7 +293,12 @@ List<BarChartGroupData> _thisWeekChart(
   for (var i = 0; i < 7; ++i) {
     out.add(BarChartGroupData(
       x: i,
-      barRods: [BarChartRodData(toY: dailyTotal[i].toDouble() / 100)],
+      barRods: [
+        BarChartRodData(
+          toY: dailyTotal[i].toDouble() / 100,
+          color: Theme.of(context).extension<ElementThemes>()?.onCard,
+        )
+      ],
     ));
   }
 
