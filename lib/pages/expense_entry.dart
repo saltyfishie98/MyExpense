@@ -14,24 +14,31 @@ class ExpenseEntry extends StatefulWidget {
   });
 
   final Function() onNewExpense;
+  double get labelFontSize => _labelFontSize;
+  int get entryFlexValue => _entryFlexValue;
+  int get labelFlexValue => _labelFlexValue;
+
+  final double _labelFontSize = 22;
+  final int _entryFlexValue = 5;
+  final int _labelFlexValue = 3;
+
   @override
   State createState() => _ExpenseEntryState();
 }
 
 class _ExpenseEntryState extends StateX<ExpenseEntry> {
-  double labelSize = 22;
-  int entryFlexValue = 5;
-  int labelFlexValue = 3;
-
   //// States ///////////////////////////////////////////////
 
   String _selectedCategory = "";
   DateTime _selectedDate = DateTime.now();
+  bool _titleFilled = true;
+  bool _amountFilled = true;
   late MainController _ctrlr;
-  final _titleInputCtrl = TextEditingController();
-  final _amountInputCtrl = TextEditingController();
 
   //// Implementations //////////////////////////////////////
+
+  final _titleInputCtrl = TextEditingController();
+  final _amountInputCtrl = TextEditingController();
 
   _ExpenseEntryState() : super(MainController()) {
     _ctrlr = controller as MainController;
@@ -40,8 +47,8 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
 
   @override
   Widget build(BuildContext context) {
-    final entryFontSize = labelSize - 2;
-    final entrySize = labelSize + 10;
+    final entryFontSize = widget.labelFontSize - 2;
+    final entryCellHeight = widget.labelFontSize + 10;
     const double entrySpacing = 17;
 
     return Scaffold(
@@ -72,21 +79,21 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                   Row(
                     children: [
                       Expanded(
-                        flex: labelFlexValue,
+                        flex: widget.labelFlexValue,
                         child: Align(
                           alignment: FractionalOffset.centerRight,
                           child: Text(
                             "Title:",
                             maxLines: 1,
-                            style: TextStyle(fontSize: labelSize),
+                            style: TextStyle(fontSize: widget.labelFontSize),
                           ),
                         ),
                       ),
                       Expanded(
-                        flex: entryFlexValue,
+                        flex: widget.entryFlexValue,
                         child: Container(
-                          margin: const EdgeInsets.only(left: 5, right: 20),
-                          height: entrySize,
+                          margin: const EdgeInsets.only(left: 5, right: 5),
+                          height: entryCellHeight,
                           child: TextField(
                             controller: _titleInputCtrl,
                             textCapitalization: TextCapitalization.sentences,
@@ -99,6 +106,10 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                           ),
                         ),
                       ),
+                      _entryErrorWidget(
+                        !_titleFilled,
+                        boxSize: Size(10, entryCellHeight),
+                      )
                     ],
                   ),
 
@@ -108,25 +119,27 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                   Row(
                     children: [
                       Expanded(
-                        flex: labelFlexValue,
+                        flex: widget.labelFlexValue,
                         child: Align(
                           alignment: FractionalOffset.centerRight,
                           child: Text(
                             "Category:",
                             maxLines: 1,
-                            style: TextStyle(fontSize: labelSize),
+                            style: TextStyle(fontSize: widget.labelFontSize),
                           ),
                         ),
                       ),
                       Expanded(
-                        flex: entryFlexValue,
+                        flex: widget.entryFlexValue,
                         child: Container(
                           margin: const EdgeInsets.only(left: 5, right: 0),
-                          height: entrySize,
+                          height: entryCellHeight,
                           child: DropdownButton<String>(
                             value: _selectedCategory,
                             underline: const SizedBox(),
                             isExpanded: true,
+                            icon: const Icon(
+                                Icons.arrow_drop_down_circle_outlined),
                             onChanged: (String? value) {
                               setState(() {
                                 _selectedCategory = value!;
@@ -162,21 +175,21 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                   Row(
                     children: [
                       Expanded(
-                        flex: labelFlexValue,
+                        flex: widget.labelFlexValue,
                         child: Align(
                           alignment: FractionalOffset.centerRight,
                           child: Text(
                             "Date:",
                             maxLines: 1,
-                            style: TextStyle(fontSize: labelSize),
+                            style: TextStyle(fontSize: widget.labelFontSize),
                           ),
                         ),
                       ),
                       Expanded(
-                        flex: entryFlexValue,
+                        flex: widget.entryFlexValue,
                         child: Container(
                           margin: const EdgeInsets.only(left: 5, right: 0),
-                          height: entrySize,
+                          height: entryCellHeight,
                           child: GestureDetector(
                             onTap: () async {
                               Feedback.forTap(context);
@@ -225,21 +238,21 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                   Row(
                     children: [
                       Expanded(
-                        flex: labelFlexValue,
+                        flex: widget.labelFlexValue,
                         child: Align(
                           alignment: FractionalOffset.centerRight,
                           child: Text(
                             "Amount:",
                             maxLines: 1,
-                            style: TextStyle(fontSize: labelSize),
+                            style: TextStyle(fontSize: widget.labelFontSize),
                           ),
                         ),
                       ),
                       Expanded(
-                        flex: entryFlexValue,
+                        flex: widget.entryFlexValue,
                         child: Container(
-                          margin: const EdgeInsets.only(left: 5, right: 20),
-                          height: entrySize + 50,
+                          margin: const EdgeInsets.only(left: 5, right: 5),
+                          height: entryCellHeight + 50,
                           child: TextField(
                             controller: _amountInputCtrl,
                             keyboardType:
@@ -258,6 +271,10 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                             ],
                           ),
                         ),
+                      ),
+                      _entryErrorWidget(
+                        !_amountFilled,
+                        boxSize: Size(10, entryCellHeight),
                       )
                     ],
                   ),
@@ -270,6 +287,19 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
               FloatingActionButton(
                 heroTag: "add-button",
                 onPressed: () async {
+                  final emptyTitle = _titleInputCtrl.text.isEmpty;
+                  final emptyAmount = _amountInputCtrl.text.isEmpty;
+
+                  if (emptyTitle || emptyAmount) {
+                    setState(() {
+                      emptyTitle ? _titleFilled = false : _titleFilled = true;
+                      emptyAmount
+                          ? _amountFilled = false
+                          : _amountFilled = true;
+                    });
+                    return;
+                  }
+
                   Navigator.pop(context);
                   await _ctrlr.addExpense(
                     Expense(
@@ -302,6 +332,26 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       ),
     );
   }
+}
+
+Widget _entryErrorWidget(bool visibilityValue, {required Size boxSize}) {
+  return Align(
+    alignment: FractionalOffset.centerLeft,
+    child: SizedBox(
+      height: boxSize.height,
+      width: boxSize.width,
+      child: Visibility(
+        visible: visibilityValue,
+        child: const Text(
+          "!",
+          style: TextStyle(
+            fontSize: 25,
+            color: Colors.red,
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class PriceFormatter extends TextInputFormatter {
