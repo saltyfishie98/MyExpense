@@ -1,12 +1,12 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:sticky_headers/sticky_headers.dart';
+import 'package:state_extended/state_extended.dart';
 import 'package:my_expense/controller.dart';
 import 'package:my_expense/pages/expense_entry.dart';
 import 'package:my_expense/theme.dart';
 import 'package:my_expense/elements/widget_radio.dart';
-import 'package:sticky_headers/sticky_headers.dart';
-import 'package:state_extended/state_extended.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -39,7 +39,8 @@ class _HomePageState extends StateX<HomePage> {
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
             children: [
-              //// Title ///////////////////////////////////////
+              //// Title ///////////////////////////////////////////////////////////////////////////
+
               const SizedBox(width: double.infinity, height: 10),
               const Row(
                 children: [
@@ -53,7 +54,8 @@ class _HomePageState extends StateX<HomePage> {
                 ],
               ),
 
-              //// Graph ///////////////////////////////////////
+              //// Graph ///////////////////////////////////////////////////////////////////////////
+
               const SizedBox(width: double.infinity, height: 15),
               Container(
                 width: double.infinity,
@@ -152,7 +154,8 @@ class _HomePageState extends StateX<HomePage> {
                 ),
               ),
 
-              //// Selection ///////////////////////////////////
+              //// Selection ///////////////////////////////////////////////////////////////////////
+
               const SizedBox(width: double.infinity, height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 0.0),
@@ -206,53 +209,24 @@ class _HomePageState extends StateX<HomePage> {
                 ),
               ),
 
-              //// Entries /////////////////////////////////////
+              //// Entries /////////////////////////////////////////////////////////////////////////
+
               const SizedBox(width: double.infinity, height: 15),
               Expanded(
                 flex: 1,
                 child: Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
-                    ListView.builder(
-                      itemCount: ctrlr.dailySectionsCount,
-                      itemBuilder: (context, index) {
-                        final data = ctrlr.dailyDataAt(index);
-                        final dataDT = data.first.datetime;
-                        final bool isToday = dataDT.year == today.year &&
-                            dataDT.month == today.month &&
-                            dataDT.day == today.day;
+                    //// Daily Entries Section View ////////////////////////////////////////////////
 
-                        late String datetime;
-                        if (dataDT.year == today.year) {
-                          datetime = isToday
-                              ? "Today"
-                              : DateFormat('MMM dd').format(dataDT);
-                        } else {
-                          datetime = DateFormat('MMM dd, yyyy').format(dataDT);
-                        }
-
-                        return StickyHeader(
-                          header: Container(
-                            width: double.infinity,
-                            color: theme.canvasColor,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              child: Text(
-                                datetime,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: elmtThemes?.h3Color,
-                                ),
-                              ),
-                            ),
-                          ),
-                          content: Column(
-                            children: _dailyEntries(context, entries: data),
-                          ),
-                        );
-                      },
+                    DailySection(
+                      controller: ctrlr,
+                      today: today,
+                      theme: theme,
                     ),
+
+                    //// Add Entry Button //////////////////////////////////////////////////////////
+
                     Padding(
                       padding: const EdgeInsets.only(bottom: 30.0),
                       child: FloatingActionButton(
@@ -305,82 +279,6 @@ List<BarChartGroupData> _thisWeekChart(
   return out;
 }
 
-List<Widget> _dailyEntries(
-  BuildContext context, {
-  required List<Expense> entries,
-}) {
-  final elmtThemes = Theme.of(context).extension<ElementThemes>();
-  List<Widget> out = [];
-
-  for (final expense in entries) {
-    out.add(
-      Container(
-        width: double.infinity,
-        height: 75,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              //// Icon /////////////////////////////////
-              Row(
-                children: [
-                  Container(
-                    width: 55,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: elmtThemes?.accent,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                            color: elmtThemes?.shadow ?? Colors.black,
-                            blurRadius: 5.0,
-                            offset: const Offset(1, 2))
-                      ],
-                    ),
-                  ),
-
-                  //// Title ////////////////////////////////
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 7.0, horizontal: 13),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          expense.title,
-                          style: const TextStyle(fontSize: 17),
-                        ),
-                        Text(
-                          expense.category,
-                          style: const TextStyle(fontSize: 10),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              //// Amount //////////////////////////////
-              Text(
-                "\$${(expense.amount / 100).toStringAsFixed(2)}",
-                style: const TextStyle(fontSize: 20),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  return out;
-}
-
 Widget _radioElement<T>(
   BuildContext context, {
   required String title,
@@ -428,41 +326,159 @@ Widget _radioElement<T>(
   );
 }
 
-DateTime addDay(DateTime today, int amount) {
-  return DateTime(
-    today.year,
-    today.month,
-    today.day + amount,
-    today.hour,
-    today.minute,
-    today.second,
-    today.millisecond,
-    today.microsecond,
+//// Daily Entries Section /////////////////////////////////////////////////////////////////////////
+
+class DailySection extends StatelessWidget {
+  const DailySection({
+    super.key,
+    required this.controller,
+    required this.today,
+    required this.theme,
+  });
+
+  final MainController controller;
+  final DateTime today;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: controller.dailySectionsCount,
+      itemBuilder: (context, index) {
+        final data = controller.dailyDataAt(index);
+        final dataDT = data.first.datetime;
+        final bool isToday = dataDT.year == today.year &&
+            dataDT.month == today.month &&
+            dataDT.day == today.day;
+
+        late String dateStr;
+        if (dataDT.year == today.year) {
+          dateStr = isToday ? "Today" : DateFormat('MMM dd').format(dataDT);
+        } else {
+          dateStr = DateFormat('MMM dd, yyyy').format(dataDT);
+        }
+
+        return StickyHeader(
+          //// Date Label //////////////////////////////////////////////////////////////////////////
+
+          header: _entryDateHeader(
+            context,
+            theme: theme,
+            dateStr: dateStr,
+          ),
+
+          //// Entry List //////////////////////////////////////////////////////////////////////////
+
+          content: _dailyEntries(
+            context,
+            entries: data,
+          ),
+        );
+      },
+    );
+  }
+}
+
+Widget _entryDateHeader(
+  BuildContext context, {
+  required ThemeData theme,
+  required String dateStr,
+}) {
+  return Container(
+    width: double.infinity,
+    color: theme.canvasColor,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 5,
+      ),
+      child: Text(
+        dateStr,
+        style: TextStyle(
+          fontSize: 15,
+          color: theme.extension<ElementThemes>()?.h3Color,
+        ),
+      ),
+    ),
   );
 }
 
-DateTime addMonth(DateTime today, int amount) {
-  return DateTime(
-    today.year,
-    today.month + amount,
-    today.day,
-    today.hour,
-    today.minute,
-    today.second,
-    today.millisecond,
-    today.microsecond,
-  );
-}
+Widget _dailyEntries(
+  BuildContext context, {
+  required List<Expense> entries,
+}) {
+  final elmtThemes = Theme.of(context).extension<ElementThemes>();
+  List<Widget> out = [];
 
-DateTime addYear(DateTime today, int amount) {
-  return DateTime(
-    today.year + amount,
-    today.month,
-    today.day,
-    today.hour,
-    today.minute,
-    today.second,
-    today.millisecond,
-    today.microsecond,
+  for (final expense in entries) {
+    out.add(
+      Container(
+        width: double.infinity,
+        height: 75,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  //// Icon ////////////////////////////////////////////////////////////////////////
+
+                  Container(
+                    width: 55,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      color: elmtThemes?.accent,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                            color: elmtThemes?.shadow ?? Colors.black,
+                            blurRadius: 5.0,
+                            offset: const Offset(1, 2))
+                      ],
+                    ),
+                  ),
+
+                  //// Title ///////////////////////////////////////////////////////////////////////
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 7.0, horizontal: 13),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          expense.title,
+                          style: const TextStyle(fontSize: 17),
+                        ),
+                        Text(
+                          expense.category,
+                          style: const TextStyle(fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              //// Amount //////////////////////////////////////////////////////////////////////////
+
+              Text(
+                "\$${(expense.amount / 100).toStringAsFixed(2)}",
+                style: const TextStyle(fontSize: 20),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  return Column(
+    children: out,
   );
 }
