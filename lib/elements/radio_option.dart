@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class WidgetRadio<T> extends StatelessWidget {
+class RadioOption<T> extends StatelessWidget {
   final T value;
   final T groupValue;
   final ValueChanged<T?> onChanged;
   final Widget activeWidget;
   final Widget dormentWidget;
 
-  const WidgetRadio({
+  const RadioOption({
     super.key,
     required this.value,
     required this.groupValue,

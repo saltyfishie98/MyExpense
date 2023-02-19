@@ -5,7 +5,7 @@ import 'package:state_extended/state_extended.dart';
 import 'package:my_expense/controller.dart';
 import 'package:my_expense/pages/expense_entry.dart';
 import 'package:my_expense/theme.dart';
-import 'package:my_expense/elements/widget_radio.dart';
+import 'package:my_expense/elements/radio_option.dart';
 
 enum GraphMode { week, month, year }
 
@@ -59,7 +59,7 @@ class _HomePageState extends StateX<HomePage> {
     for (final mode in GraphMode.values) {
       radioOptions.add(
         Expanded(
-          child: _radioElement(
+          child: _radioOption(
             context,
             title: mode.toShortString().capitalize(),
             value: mode,
@@ -213,7 +213,7 @@ class _HomePageState extends StateX<HomePage> {
 
 //// Radio Selector ////////////////////////////////////////////////////////////////////////////////
 
-Widget _radioElement<T>(
+Widget _radioOption<T>(
   BuildContext context, {
   required String title,
   required T value,
@@ -251,7 +251,7 @@ Widget _radioElement<T>(
     );
   }
 
-  return WidgetRadio<T>(
+  return RadioOption<T>(
     value: value,
     groupValue: groupValue,
     onChanged: onChanged,
