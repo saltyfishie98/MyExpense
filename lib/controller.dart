@@ -148,28 +148,43 @@ class MainController extends StateXController {
   }
 
   List<int> getThisWeekDailyTotal() {
-    var out = [0, 0, 0, 0, 0, 0, 0];
+    var weeklyData = [0, 0, 0, 0, 0, 0, 0];
 
-    if (_model.expenseData.isEmpty) return out;
+    if (_model.expenseData.isEmpty) return weeklyData;
 
-    var i = 0;
-    while (true) {
-      final dailyExpenses = _model.expenseData[i];
+    final today = DateTime.now();
+    final startOffet = today.weekday - 1;
+    final endOffset = 8 - today.weekday;
 
-      var total = 0;
-      for (var element in dailyExpenses) {
-        total += element.amount;
+    final lastSunday = today.copyWith(
+      day: today.day - startOffet,
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+      microsecond: 0,
+    );
+
+    final nextMonday = today.copyWith(
+      day: today.day + endOffset,
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+      microsecond: 0,
+    );
+
+    for (final dailySection in _model.expenseData) {
+      final sectionDate = dailySection.first.datetime;
+      if (sectionDate.isAfter(lastSunday) && sectionDate.isBefore(nextMonday)) {
+        final index = sectionDate.weekday - 1;
+        for (final expense in dailySection) {
+          weeklyData[index] += expense.amount;
+        }
       }
-
-      out[6 - i] = total;
-
-      ++i;
-
-      if (dailyExpenses.first.datetime.weekday == 1) break;
-      if (_model.expenseData.length == i) break;
     }
 
-    return out;
+    return weeklyData;
   }
 
   List<Expense> dailyDataAt(int index) {
