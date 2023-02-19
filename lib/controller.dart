@@ -115,6 +115,10 @@ class MainController extends StateXController {
     _model.expenseData.sort(
       (a, b) => b.first.datetime.compareTo(a.first.datetime),
     );
+
+    for (final data in _model.expenseData) {
+      data.sort((a, b) => b.datetime.compareTo(a.datetime));
+    }
   }
 
   factory MainController() => _this ??= MainController._();
