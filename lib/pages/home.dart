@@ -62,7 +62,8 @@ class _HomePageState extends StateX<HomePage> {
                 height: 210,
                 decoration: BoxDecoration(
                   color: elmtThemes?.card,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius:
+                      BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
                   boxShadow: [
                     BoxShadow(
                       blurRadius: 7,
@@ -416,62 +417,69 @@ Widget _dailyEntries(
         width: double.infinity,
         height: 75,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  //// Icon ////////////////////////////////////////////////////////////////////////
+        child: InkWell(
+          onLongPress: () {},
+          onTap: () {},
+          customBorder: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    //// Icon ////////////////////////////////////////////////////////////////////////
 
-                  Container(
-                    width: 55,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: elmtThemes?.accent,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                            color: elmtThemes?.shadow ?? Colors.black,
-                            blurRadius: 5.0,
-                            offset: const Offset(1, 2))
-                      ],
+                    Container(
+                      width: 55,
+                      height: 55,
+                      decoration: BoxDecoration(
+                        color: elmtThemes?.accent,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                              color: elmtThemes?.shadow ?? Colors.black,
+                              blurRadius: 5.0,
+                              offset: const Offset(1, 2))
+                        ],
+                      ),
                     ),
-                  ),
 
-                  //// Title ///////////////////////////////////////////////////////////////////////
+                    //// Title ///////////////////////////////////////////////////////////////////////
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 7.0, horizontal: 13),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          expense.title,
-                          style: const TextStyle(fontSize: 17),
-                        ),
-                        Text(
-                          expense.category,
-                          style: const TextStyle(fontSize: 10),
-                        ),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 7.0, horizontal: 13),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            expense.title,
+                            style: const TextStyle(fontSize: 17),
+                          ),
+                          Text(
+                            expense.category,
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
 
-              //// Amount //////////////////////////////////////////////////////////////////////////
+                //// Amount //////////////////////////////////////////////////////////////////////////
 
-              Text(
-                "\$${(expense.amount / 100).toStringAsFixed(2)}",
-                style: const TextStyle(fontSize: 20),
-              )
-            ],
+                Text(
+                  "\$${(expense.amount / 100).toStringAsFixed(2)}",
+                  style: const TextStyle(fontSize: 20),
+                )
+              ],
+            ),
           ),
         ),
       ),

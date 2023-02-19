@@ -1,8 +1,12 @@
+import 'dart:ui';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 
 class AppTheme {
   AppTheme._();
+
+  static const _cardRadius = 20.0;
 
   static void setup({ColorScheme? light, ColorScheme? dark}) {
     late ColorScheme lightScheme;
@@ -29,6 +33,7 @@ class AppTheme {
           ElementThemes(
             card: lightScheme.inversePrimary,
             onCard: lightScheme.primary,
+            cardRadius: _cardRadius,
             shadow: Colors.grey.shade400,
             accent: lightScheme.surfaceVariant,
             subsurface: Colors.grey.shade200,
@@ -45,6 +50,7 @@ class AppTheme {
           ElementThemes(
             card: darkScheme.inversePrimary,
             onCard: darkScheme.primary,
+            cardRadius: _cardRadius,
             shadow: Colors.black,
             accent: darkScheme.surfaceVariant,
             subsurface: const Color.fromRGBO(0, 0, 0, .22),
@@ -109,6 +115,7 @@ class AppTheme {
           ElementThemes(
             card: lightScheme.primary,
             onCard: lightScheme.onPrimary,
+            cardRadius: _cardRadius,
             shadow: Colors.grey.shade400,
             accent: lightScheme.surfaceVariant,
             subsurface: Colors.grey.shade200,
@@ -124,6 +131,7 @@ class AppTheme {
           ElementThemes(
             card: darkScheme.primary,
             onCard: darkScheme.onPrimary,
+            cardRadius: _cardRadius,
             shadow: Colors.black,
             accent: darkScheme.surfaceVariant,
             subsurface: const Color.fromRGBO(0, 0, 0, .22),
@@ -145,6 +153,7 @@ class ElementThemes extends ThemeExtension<ElementThemes> {
   const ElementThemes({
     required this.card,
     required this.onCard,
+    required this.cardRadius,
     required this.shadow,
     required this.accent,
     required this.subsurface,
@@ -153,6 +162,7 @@ class ElementThemes extends ThemeExtension<ElementThemes> {
 
   final Color card;
   final Color onCard;
+  final double cardRadius;
   final Color shadow;
   final Color accent;
   final Color subsurface;
@@ -162,6 +172,7 @@ class ElementThemes extends ThemeExtension<ElementThemes> {
   ThemeExtension<ElementThemes> copyWith({
     Color? card,
     Color? onCard,
+    double? cardRadius,
     Color? shadow,
     Color? accent,
     Color? subsurface,
@@ -170,6 +181,7 @@ class ElementThemes extends ThemeExtension<ElementThemes> {
     return ElementThemes(
       card: card ?? this.card,
       onCard: onCard ?? this.onCard,
+      cardRadius: cardRadius ?? this.cardRadius,
       shadow: shadow ?? this.shadow,
       accent: accent ?? this.accent,
       subsurface: subsurface ?? this.subsurface,
@@ -187,6 +199,7 @@ class ElementThemes extends ThemeExtension<ElementThemes> {
     return ElementThemes(
       card: Color.lerp(card, other.card, t)!,
       onCard: Color.lerp(onCard, other.onCard, t)!,
+      cardRadius: lerpDouble(cardRadius, other.cardRadius, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
       accent: Color.lerp(accent, other.accent, t)!,
       subsurface: Color.lerp(subsurface, other.subsurface, t)!,
