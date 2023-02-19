@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:sticky_headers/sticky_headers.dart';
 import 'package:state_extended/state_extended.dart';
@@ -8,6 +7,20 @@ import 'package:my_expense/pages/expense_entry.dart';
 import 'package:my_expense/theme.dart';
 import 'package:my_expense/elements/widget_radio.dart';
 
+enum GraphMode { week, month, year }
+
+extension ParseToString on GraphMode {
+  String toShortString() {
+    return toString().split('.').last;
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+  }
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -15,10 +28,8 @@ class HomePage extends StatefulWidget {
   State createState() => _HomePageState();
 }
 
-enum GraphMode { daily, monthly, yearly }
-
 class _HomePageState extends StateX<HomePage> {
-  GraphMode currentGraph = GraphMode.daily;
+  GraphMode currentGraph = GraphMode.week;
   late MainController ctrlr;
   ExpenseChart? expenseChart;
 
@@ -27,11 +38,137 @@ class _HomePageState extends StateX<HomePage> {
     expenseChart = ExpenseChart(dailyTotal: ctrlr.getThisWeekDailyTotal());
   }
 
+  Widget headerLogo() {
+    return const Row(
+      children: [
+        Text(
+          "MyExpense",
+          style: TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget radioSelector(ThemeData theme) {
+    var radioOptions = <Widget>[];
+    final elmtThemes = theme.extension<ElementThemes>();
+
+    for (final mode in GraphMode.values) {
+      radioOptions.add(
+        Expanded(
+          child: _radioElement(
+            context,
+            title: mode.toShortString().capitalize(),
+            value: mode,
+            groupValue: currentGraph,
+            onChanged: (current) => setState(() {
+              currentGraph = current!;
+            }),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        width: double.infinity,
+        height: 42,
+        decoration: BoxDecoration(
+          color: elmtThemes?.subsurface,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: radioOptions,
+        ),
+      ),
+    );
+  }
+
+  Widget dailyEntryView(ThemeData theme) {
+    return ListView.builder(
+      itemCount: ctrlr.dailySectionsCount,
+      itemBuilder: (context, index) {
+        final data = ctrlr.dailyDataAt(index);
+        final dateStr = MainController.formatDateString(
+          data.first.datetime,
+        );
+
+        return StickyHeader(
+          //// Date Label //////////////////////////////////////////////////////////
+          header: _entryDateHeader(
+            context,
+            theme: theme,
+            dateStr: dateStr,
+          ),
+
+          //// Entry List //////////////////////////////////////////////////////////
+          content: _dailyEntries(
+            context,
+            onLongPress: toEditExpense,
+            entries: data,
+          ),
+        );
+      },
+    );
+  }
+
+  void toEditExpense(expense) {
+    final page = MaterialPageRoute(
+      builder: (context) => ExpenseEntry(
+        "Edit\nExpense:",
+        onNewExpense: null,
+        onEditExpense: () {
+          setState(() {
+            expenseChart = ExpenseChart(
+              dailyTotal: ctrlr.getThisWeekDailyTotal(),
+            );
+          });
+        },
+        expense: expense,
+      ),
+    );
+
+    Navigator.push(context, page);
+  }
+
+  void toAddExpense() async {
+    final page = MaterialPageRoute(
+      builder: (context) => ExpenseEntry(
+        "Add\nExpense:",
+        onNewExpense: () {
+          setState(() {
+            expenseChart = ExpenseChart(
+              dailyTotal: ctrlr.getThisWeekDailyTotal(),
+            );
+          });
+        },
+        onEditExpense: null,
+      ),
+    );
+
+    Navigator.push(context, page);
+  }
+
+  Widget addEntryButton() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 30.0),
+      child: FloatingActionButton(
+        shape: const CircleBorder(),
+        onPressed: toAddExpense,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final elmtThemes = theme.extension<ElementThemes>();
-    final today = DateTime.now();
 
     return Scaffold(
       body: SafeArea(
@@ -40,82 +177,18 @@ class _HomePageState extends StateX<HomePage> {
           child: Column(
             children: [
               //// Title ///////////////////////////////////////////////////////////////////////////
-
               const SizedBox(width: double.infinity, height: 10),
-              const Row(
-                children: [
-                  Text(
-                    "MyExpense",
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+              headerLogo(),
 
               //// Graph ///////////////////////////////////////////////////////////////////////////
-
               const SizedBox(width: double.infinity, height: 15),
               expenseChart!,
 
               //// Selection ///////////////////////////////////////////////////////////////////////
-
               const SizedBox(width: double.infinity, height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  width: double.infinity,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: elmtThemes?.subsurface,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: _radioElement(
-                          context,
-                          title: "Week",
-                          value: GraphMode.daily,
-                          groupValue: currentGraph,
-                          onChanged: (current) => setState(() {
-                            currentGraph = current!;
-                          }),
-                        ),
-                      ),
-                      Expanded(
-                        child: _radioElement(
-                          context,
-                          title: "Month",
-                          value: GraphMode.monthly,
-                          groupValue: currentGraph,
-                          onChanged: (current) => setState(() {
-                            currentGraph = current!;
-                          }),
-                        ),
-                      ),
-                      Expanded(
-                        child: _radioElement(
-                          context,
-                          title: "Year",
-                          value: GraphMode.yearly,
-                          groupValue: currentGraph,
-                          onChanged: (current) => setState(() {
-                            currentGraph = current!;
-                          }),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              radioSelector(theme),
 
               //// Entries /////////////////////////////////////////////////////////////////////////
-
               const SizedBox(width: double.infinity, height: 15),
               Expanded(
                 flex: 1,
@@ -123,96 +196,10 @@ class _HomePageState extends StateX<HomePage> {
                   alignment: Alignment.bottomCenter,
                   children: [
                     //// Daily Entries Section View ////////////////////////////////////////////////
-
-                    ListView.builder(
-                      itemCount: ctrlr.dailySectionsCount,
-                      itemBuilder: (context, index) {
-                        final data = ctrlr.dailyDataAt(index);
-                        final dataDT = data.first.datetime;
-                        final bool isToday = dataDT.year == today.year &&
-                            dataDT.month == today.month &&
-                            dataDT.day == today.day;
-
-                        late String dateStr;
-                        if (dataDT.year == today.year) {
-                          dateStr = isToday
-                              ? "Today"
-                              : DateFormat('MMM dd').format(dataDT);
-                        } else {
-                          dateStr = DateFormat('MMM dd, yyyy').format(dataDT);
-                        }
-
-                        return StickyHeader(
-                          //// Date Label //////////////////////////////////////////////////////////
-                          header: _entryDateHeader(
-                            context,
-                            theme: theme,
-                            dateStr: dateStr,
-                          ),
-
-                          //// Entry List //////////////////////////////////////////////////////////
-                          content: _dailyEntries(
-                            context,
-
-                            //// Press to edit entry ///////////////////////////////////////////////
-                            onLongPress: (expense) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ExpenseEntry(
-                                    "Edit\nExpense:",
-                                    onNewExpense: null,
-                                    onEditExpense: () => setState(
-                                      () {
-                                        expenseChart = ExpenseChart(
-                                          dailyTotal:
-                                              ctrlr.getThisWeekDailyTotal(),
-                                        );
-                                      },
-                                    ),
-                                    expense: expense,
-                                  ),
-                                ),
-                              );
-                            },
-                            entries: data,
-                          ),
-                        );
-                      },
-                    ),
+                    dailyEntryView(theme),
 
                     //// Add Entry Button //////////////////////////////////////////////////////////
-
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 30.0),
-                      child: FloatingActionButton(
-                        shape: const CircleBorder(),
-
-                        //// Press to add entry ////////////////////////////////////////////////////
-                        onPressed: () async {
-                          setState(() {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ExpenseEntry(
-                                  "Add\nExpense:",
-                                  onNewExpense: () => setState(
-                                    () {
-                                      expenseChart = ExpenseChart(
-                                        dailyTotal:
-                                            ctrlr.getThisWeekDailyTotal(),
-                                      );
-                                    },
-                                  ),
-                                  onEditExpense: null,
-                                ),
-                              ),
-                            );
-                          });
-                        },
-                        child: const Icon(Icons.add),
-                      ),
-                    ),
+                    addEntryButton(),
                   ],
                 ),
               )

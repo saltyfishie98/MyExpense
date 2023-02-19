@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:state_extended/state_extended.dart';
 
@@ -26,6 +27,23 @@ class MainController extends StateXController {
 
   static int formatAmountToInsert(double amount) {
     return (amount * 100).toInt();
+  }
+
+  static String formatDateString(DateTime datetime) {
+    final today = DateTime.now();
+
+    final bool isToday = datetime.year == today.year &&
+        datetime.month == today.month &&
+        datetime.day == today.day;
+
+    late String dateStr;
+    if (datetime.year == today.year) {
+      dateStr = isToday ? "Today" : DateFormat('MMM dd').format(datetime);
+    } else {
+      dateStr = DateFormat('MMM dd, yyyy').format(datetime);
+    }
+
+    return dateStr;
   }
 
   Future<void> setup({
