@@ -8,12 +8,19 @@ import 'package:tuple/tuple.dart';
 typedef EntryRow = Tuple3<String, Widget, double>;
 
 class ExpenseEntry extends StatefulWidget {
-  const ExpenseEntry({
+  const ExpenseEntry(
+    this.label, {
     super.key,
     required this.onNewExpense,
+    required this.onEditExpense,
+    this.expense,
   });
 
-  final Function() onNewExpense;
+  final String label;
+  final Function()? onNewExpense;
+  final Function()? onEditExpense;
+  final Expense? expense;
+
   double get labelFontSize => _labelFontSize;
   int get entryFlexValue => _entryFlexValue;
   int get labelFlexValue => _labelFlexValue;
@@ -37,9 +44,6 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
 
   //// Implementations //////////////////////////////////////
 
-  final _titleInputCtrl = TextEditingController();
-  final _amountInputCtrl = TextEditingController();
-
   _ExpenseEntryState() : super(MainController()) {
     _ctrlr = controller as MainController;
     _selectedCategory = _ctrlr.categories.first;
@@ -51,6 +55,76 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
     final entryCellHeight = widget.labelFontSize + 10;
     const double entrySpacing = 17;
 
+    late TextEditingController titleInputCtrl;
+    late TextEditingController amountInputCtrl;
+
+    if (widget.expense != null) {
+      _selectedCategory = widget.expense!.category;
+      _selectedDate = widget.expense!.datetime;
+      titleInputCtrl = TextEditingController(text: widget.expense!.title);
+      amountInputCtrl = TextEditingController(
+        text: (widget.expense!.amount / 100).toStringAsFixed(2),
+      );
+    } else {
+      titleInputCtrl = TextEditingController();
+      amountInputCtrl = TextEditingController();
+    }
+
+    void addExpenseCallback() async {
+      final emptyTitle = titleInputCtrl.text.isEmpty;
+      final emptyAmount = amountInputCtrl.text.isEmpty;
+
+      if (emptyTitle || emptyAmount) {
+        setState(() {
+          emptyTitle ? _titleFilled = false : _titleFilled = true;
+          emptyAmount ? _amountFilled = false : _amountFilled = true;
+        });
+        return;
+      }
+
+      Navigator.pop(context);
+      await _ctrlr.addExpense(
+        Expense(
+          datetime: _selectedDate,
+          amount: MainController.formatAmountToInsert(
+              double.parse(amountInputCtrl.text)),
+          title: titleInputCtrl.text,
+          category: _selectedCategory,
+        ),
+      );
+
+      widget.onNewExpense!();
+    }
+
+    void editExpenseCallback() async {
+      final emptyTitle = titleInputCtrl.text.isEmpty;
+      final emptyAmount = amountInputCtrl.text.isEmpty;
+
+      if (emptyTitle || emptyAmount) {
+        setState(() {
+          emptyTitle ? _titleFilled = false : _titleFilled = true;
+          emptyAmount ? _amountFilled = false : _amountFilled = true;
+        });
+        return;
+      }
+
+      Navigator.pop(context);
+
+      await _ctrlr.editExpense(
+        oldExpense: widget.expense!,
+        newExpense: Expense(
+          title: titleInputCtrl.text,
+          amount: MainController.formatAmountToInsert(
+            double.parse(amountInputCtrl.text),
+          ),
+          category: _selectedCategory,
+          datetime: _selectedDate,
+        ),
+      );
+
+      widget.onEditExpense!();
+    }
+
     return Scaffold(
       body: Center(
         child: SizedBox(
@@ -59,14 +133,14 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Align(
+              Align(
                   //// Add Expense //////////////////////////////
 
                   alignment: FractionalOffset.topLeft,
                   child: Text(
-                    "Add\nExpense:",
+                    widget.label,
                     maxLines: 2,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 38,
                       fontWeight: FontWeight.w500,
                     ),
@@ -95,7 +169,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                           margin: const EdgeInsets.only(left: 5, right: 5),
                           height: entryCellHeight,
                           child: TextField(
-                            controller: _titleInputCtrl,
+                            controller: titleInputCtrl,
                             textCapitalization: TextCapitalization.sentences,
                             textAlign: TextAlign.center,
                             decoration: const InputDecoration(
@@ -254,7 +328,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                           margin: const EdgeInsets.only(left: 5, right: 5),
                           height: entryCellHeight + 50,
                           child: TextField(
-                            controller: _amountInputCtrl,
+                            controller: amountInputCtrl,
                             keyboardType:
                                 const TextInputType.numberWithOptions(),
                             textAlign: TextAlign.right,
@@ -281,37 +355,14 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                 ],
               ),
 
-              //// Add Button ///////////////////////////////
+              //// Check Mark Button ///////////////////////////////
 
               const SizedBox(width: double.infinity, height: 0),
               FloatingActionButton(
                 heroTag: "add-button",
-                onPressed: () async {
-                  final emptyTitle = _titleInputCtrl.text.isEmpty;
-                  final emptyAmount = _amountInputCtrl.text.isEmpty;
-
-                  if (emptyTitle || emptyAmount) {
-                    setState(() {
-                      emptyTitle ? _titleFilled = false : _titleFilled = true;
-                      emptyAmount
-                          ? _amountFilled = false
-                          : _amountFilled = true;
-                    });
-                    return;
-                  }
-
-                  Navigator.pop(context);
-                  await _ctrlr.addExpense(
-                    Expense(
-                      datetime: _selectedDate,
-                      amount:
-                          (double.parse(_amountInputCtrl.text) * 100).toInt(),
-                      title: _titleInputCtrl.text,
-                      category: _selectedCategory,
-                    ),
-                  );
-                  widget.onNewExpense();
-                },
+                onPressed: widget.expense == null
+                    ? addExpenseCallback
+                    : editExpenseCallback,
                 shape: const CircleBorder(),
                 child: const Icon(Icons.check),
               ),

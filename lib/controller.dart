@@ -15,12 +15,18 @@ class MainController extends StateXController {
   }
 
   static MainController? _this;
+  factory MainController() => _this ??= MainController._();
+  MainController._() : super();
 
   _Model _model = _Model(categoryTable: "", expenseTable: "");
   late Database _database;
 
   int get dailySectionsCount => _model.expenseData.length;
   List<String> get categories => _model.categories;
+
+  static int formatAmountToInsert(double amount) {
+    return (amount * 100).toInt();
+  }
 
   Future<void> setup({
     required Database database,
@@ -45,7 +51,7 @@ class MainController extends StateXController {
     final dbCategories = res.last;
 
     for (final data in dbExpense) {
-      _addExpenseToModel(
+      _model.addExpense(
         Expense(
           datetime: DateTime.parse(data["datetime"].toString()),
           amount: data["amount"] as int,
@@ -95,7 +101,7 @@ class MainController extends StateXController {
 
     /// Actualy insert into the database after the above check
     _database.insert(_model.expenseTable, {
-      "datetime": "${expense.datetime}",
+      "datetime": expense.datetime.toString(),
       "amount": expense.amount,
       "title": expense.title,
       "category": expense.category,
@@ -109,7 +115,7 @@ class MainController extends StateXController {
 
     /// Copy the database's expense into the model
     for (final data in insert) {
-      _addExpenseToModel(
+      _model.addExpense(
         Expense(
           datetime: DateTime.parse(data["datetime"].toString()),
           amount: data["amount"] as int,
@@ -118,6 +124,27 @@ class MainController extends StateXController {
         ),
       );
     }
+  }
+
+  Future<void> editExpense({
+    required Expense oldExpense,
+    required Expense newExpense,
+  }) async {
+    await _database.update(
+      _model.expenseTable,
+      {
+        "datetime": newExpense.datetime.toString(),
+        "amount": newExpense.amount,
+        "title": newExpense.title,
+        "category": newExpense.category,
+      },
+      where: "datetime='${oldExpense.datetime}'",
+    );
+
+    _model.editExpense(
+      oldExpense: oldExpense,
+      newExpense: newExpense,
+    );
   }
 
   List<int> getThisWeekDailyTotal() {
@@ -148,44 +175,6 @@ class MainController extends StateXController {
   List<Expense> dailyDataAt(int index) {
     return _model.expenseData[index];
   }
-
-  void _addExpenseToModel(Expense expense) {
-    // Create a new daily section if none exists
-    if (_model.expenseData.isEmpty) {
-      _model.expenseData.add([expense]);
-      return;
-    }
-
-    for (var i = 0; i < _model.expenseData.length; ++i) {
-      final sectionDate = _model.expenseData[i].first.datetime;
-      final current = expense.datetime;
-
-      // Add to existing day section else
-      // Create a new day section if section does not exist
-      if (current.year == sectionDate.year &&
-          current.month == sectionDate.month &&
-          current.day == sectionDate.day) {
-        _model.expenseData[i].add(expense);
-        break;
-      } else if (i + 1 == _model.expenseData.length) {
-        _model.expenseData.add([expense]);
-        break;
-      }
-    }
-
-    // Sort daily sections
-    _model.expenseData.sort(
-      (a, b) => b.first.datetime.compareTo(a.first.datetime),
-    );
-
-    // Sort entries in daily sections
-    for (final data in _model.expenseData) {
-      data.sort((a, b) => b.datetime.compareTo(a.datetime));
-    }
-  }
-
-  factory MainController() => _this ??= MainController._();
-  MainController._() : super();
 }
 
 class _Model {
@@ -199,6 +188,60 @@ class _Model {
 
   List<List<Expense>> expenseData = [];
   List<String> categories = [];
+
+  void addExpense(Expense expense) {
+    // Create a new daily section if none exists
+    if (expenseData.isEmpty) {
+      expenseData.add([expense]);
+      return;
+    }
+
+    for (var i = 0; i < expenseData.length; ++i) {
+      final sectionDate = expenseData[i].first.datetime;
+      final current = expense.datetime;
+
+      // Add to existing day section else
+      // Create a new day section if section does not exist
+      if (current.year == sectionDate.year &&
+          current.month == sectionDate.month &&
+          current.day == sectionDate.day) {
+        expenseData[i].add(expense);
+        break;
+      } else if (i + 1 == expenseData.length) {
+        expenseData.add([expense]);
+        break;
+      }
+    }
+
+    // Sort daily sections
+    expenseData.sort(
+      (a, b) => b.first.datetime.compareTo(a.first.datetime),
+    );
+
+    // Sort entries in daily sections
+    for (final data in expenseData) {
+      data.sort((a, b) => b.datetime.compareTo(a.datetime));
+    }
+  }
+
+  void editExpense({
+    required Expense oldExpense,
+    required Expense newExpense,
+  }) async {
+    var section = expenseData.firstWhere(
+      (dailySection) {
+        final sectionDate = dailySection.first.datetime;
+        final expenseDate = oldExpense.datetime;
+
+        return sectionDate.year == expenseDate.year &&
+            sectionDate.month == expenseDate.month &&
+            sectionDate.day == expenseDate.day;
+      },
+    );
+
+    addExpense(newExpense);
+    section.remove(oldExpense);
+  }
 }
 
 class Expense {

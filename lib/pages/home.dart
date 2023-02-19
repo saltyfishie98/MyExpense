@@ -220,10 +220,52 @@ class _HomePageState extends StateX<HomePage> {
                   children: [
                     //// Daily Entries Section View ////////////////////////////////////////////////
 
-                    DailySection(
-                      controller: ctrlr,
-                      today: today,
-                      theme: theme,
+                    ListView.builder(
+                      itemCount: ctrlr.dailySectionsCount,
+                      itemBuilder: (context, index) {
+                        final data = ctrlr.dailyDataAt(index);
+                        final dataDT = data.first.datetime;
+                        final bool isToday = dataDT.year == today.year &&
+                            dataDT.month == today.month &&
+                            dataDT.day == today.day;
+
+                        late String dateStr;
+                        if (dataDT.year == today.year) {
+                          dateStr = isToday
+                              ? "Today"
+                              : DateFormat('MMM dd').format(dataDT);
+                        } else {
+                          dateStr = DateFormat('MMM dd, yyyy').format(dataDT);
+                        }
+
+                        return StickyHeader(
+                          //// Date Label //////////////////////////////////////////////////////////
+                          header: _entryDateHeader(
+                            context,
+                            theme: theme,
+                            dateStr: dateStr,
+                          ),
+
+                          //// Entry List //////////////////////////////////////////////////////////
+                          content: _dailyEntries(
+                            context,
+                            onLongPress: (expense) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ExpenseEntry(
+                                    "Edit\nExpense:",
+                                    onNewExpense: null,
+                                    onEditExpense: () => setState(() {}),
+                                    expense: expense,
+                                  ),
+                                ),
+                              );
+                            },
+                            entries: data,
+                          ),
+                        );
+                      },
                     ),
 
                     //// Add Entry Button //////////////////////////////////////////////////////////
@@ -238,7 +280,9 @@ class _HomePageState extends StateX<HomePage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ExpenseEntry(
+                                  "Add\nExpense:",
                                   onNewExpense: () => setState(() {}),
+                                  onEditExpense: null,
                                 ),
                               ),
                             );
@@ -329,57 +373,6 @@ Widget _radioElement<T>(
 
 //// Daily Entries Section /////////////////////////////////////////////////////////////////////////
 
-class DailySection extends StatelessWidget {
-  const DailySection({
-    super.key,
-    required this.controller,
-    required this.today,
-    required this.theme,
-  });
-
-  final MainController controller;
-  final DateTime today;
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: controller.dailySectionsCount,
-      itemBuilder: (context, index) {
-        final data = controller.dailyDataAt(index);
-        final dataDT = data.first.datetime;
-        final bool isToday = dataDT.year == today.year &&
-            dataDT.month == today.month &&
-            dataDT.day == today.day;
-
-        late String dateStr;
-        if (dataDT.year == today.year) {
-          dateStr = isToday ? "Today" : DateFormat('MMM dd').format(dataDT);
-        } else {
-          dateStr = DateFormat('MMM dd, yyyy').format(dataDT);
-        }
-
-        return StickyHeader(
-          //// Date Label //////////////////////////////////////////////////////////////////////////
-
-          header: _entryDateHeader(
-            context,
-            theme: theme,
-            dateStr: dateStr,
-          ),
-
-          //// Entry List //////////////////////////////////////////////////////////////////////////
-
-          content: _dailyEntries(
-            context,
-            entries: data,
-          ),
-        );
-      },
-    );
-  }
-}
-
 Widget _entryDateHeader(
   BuildContext context, {
   required ThemeData theme,
@@ -406,13 +399,14 @@ Widget _entryDateHeader(
 
 Widget _dailyEntries(
   BuildContext context, {
+  required Function(Expense) onLongPress,
   required List<Expense> entries,
 }) {
   final elmtThemes = Theme.of(context).extension<ElementThemes>();
-  List<Widget> out = [];
+  List<Widget> entryList = [];
 
   for (final expense in entries) {
-    out.add(
+    entryList.add(
       Container(
         width: double.infinity,
         height: 75,
@@ -420,7 +414,7 @@ Widget _dailyEntries(
           borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
         ),
         child: InkWell(
-          onLongPress: () {},
+          onLongPress: () => onLongPress(expense),
           onTap: () {},
           customBorder: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
@@ -487,6 +481,6 @@ Widget _dailyEntries(
   }
 
   return Column(
-    children: out,
+    children: entryList,
   );
 }
