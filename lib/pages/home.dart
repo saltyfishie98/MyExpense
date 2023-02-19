@@ -175,7 +175,7 @@ class _HomePageState extends StateX<HomePage> {
                       Expanded(
                         child: _radioElement(
                           context,
-                          title: "Weekly",
+                          title: "Week",
                           value: Graph.daily,
                           groupValue: currentGraph,
                           onChanged: (current) => setState(() {
@@ -186,7 +186,7 @@ class _HomePageState extends StateX<HomePage> {
                       Expanded(
                         child: _radioElement(
                           context,
-                          title: "Monthly",
+                          title: "Month",
                           value: Graph.monthly,
                           groupValue: currentGraph,
                           onChanged: (current) => setState(() {
@@ -197,7 +197,7 @@ class _HomePageState extends StateX<HomePage> {
                       Expanded(
                         child: _radioElement(
                           context,
-                          title: "Yearly",
+                          title: "Year",
                           value: Graph.yearly,
                           groupValue: currentGraph,
                           onChanged: (current) => setState(() {
