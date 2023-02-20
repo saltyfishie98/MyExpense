@@ -142,7 +142,7 @@ class _HomePageState extends StateX<HomePage> {
             child: Expanded(
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
                   child: Text(
                     label,
                     style: const TextStyle(
@@ -161,10 +161,10 @@ class _HomePageState extends StateX<HomePage> {
         builder: (BuildContext context) {
           return SizedBox(
             width: double.infinity,
-            height: 175,
+            height: 300,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const SizedBox(width: double.infinity, height: 30),
                 button("Edit", onTap: () {
                   Navigator.pop(context);
                   toEditExpense(expense);
