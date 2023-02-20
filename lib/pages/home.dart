@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:intl/intl.dart';
 import 'package:my_expense/elements/entry_card.dart';
 import 'package:state_extended/state_extended.dart';
 import 'package:my_expense/controller.dart';
@@ -346,6 +347,7 @@ class ExpenseChart extends StatelessWidget {
 
   final MainController controller;
   final GraphMode graphType;
+  final double labelSize = 22;
 
   String _createTotalStr() {
     switch (graphType) {
@@ -374,6 +376,69 @@ class ExpenseChart extends StatelessWidget {
       case GraphMode.year:
         return _yearChart(context);
     }
+  }
+
+  Widget _createChartLabel(BuildContext context) {
+    switch (graphType) {
+      case GraphMode.week:
+        return _weekLabel();
+
+      case GraphMode.month:
+        return _monthLabel();
+
+      case GraphMode.year:
+        return _yearLabel();
+    }
+  }
+
+  Widget _weekLabel() {
+    final range = MainController.getThisWeekRange();
+
+    final startMonth = DateFormat("MMM").format(range.start);
+    final startDay = range.start.day.toString();
+
+    final endMonth = DateFormat("MMM").format(range.end);
+    final endDay = range.end.day.toString();
+
+    Widget label(String dayLabel, String monthLabel) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            dayLabel,
+            style: TextStyle(fontSize: labelSize),
+          ),
+          Text(
+            monthLabel,
+            style: TextStyle(fontSize: labelSize - 5),
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        label(startDay, startMonth),
+        const Text(" - "),
+        label(endDay, endMonth),
+      ],
+    );
+  }
+
+  Widget _monthLabel() {
+    final monthStr = DateFormat("MMM, yyyy").format(DateTime.now());
+    return Text(
+      monthStr,
+      style: TextStyle(fontSize: labelSize),
+    );
+  }
+
+  Widget _yearLabel() {
+    final monthStr = DateFormat("Yr yyyy").format(DateTime.now());
+    return Text(
+      monthStr,
+      style: TextStyle(fontSize: labelSize),
+    );
   }
 
   Widget _lineChart(
@@ -602,21 +667,30 @@ class ExpenseChart extends StatelessWidget {
           children: [
             const SizedBox(width: double.infinity, height: 3),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const SizedBox(
-                  height: 30,
-                  child: Align(
-                    alignment: FractionalOffset.bottomRight,
-                    child: Text(
-                      "Total: ",
-                      style: TextStyle(fontSize: 17),
-                    ),
-                  ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 3.0),
+                  child: _createChartLabel(context),
                 ),
-                Text(
-                  "\$${_createTotalStr()}",
-                  style: const TextStyle(fontSize: 30, inherit: false),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const SizedBox(
+                      height: 30,
+                      child: Align(
+                        alignment: FractionalOffset.bottomRight,
+                        child: Text(
+                          "Total: ",
+                          style: TextStyle(fontSize: 17),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "\$${_createTotalStr()}",
+                      style: const TextStyle(fontSize: 30, inherit: false),
+                    ),
+                  ],
                 ),
               ],
             ),

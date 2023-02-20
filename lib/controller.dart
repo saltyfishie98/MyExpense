@@ -1,20 +1,20 @@
-import 'dart:developer';
+import 'dart:math';
+
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:state_extended/state_extended.dart';
 
-class MainController extends StateXController {
-  void logExpenseData() {
-    log("Expense Data:");
-    for (final section in _model.expenseData) {
-      log("   ${section.first.datetime.toString()}");
-      for (final entry in section) {
-        log("       datetime: ${entry.datetime}, title: ${entry.title}");
-      }
-      log("\n");
-    }
-  }
+class DatetimeRange {
+  const DatetimeRange(
+    this.start,
+    this.end,
+  );
 
+  final DateTime start;
+  final DateTime end;
+}
+
+class MainController extends StateXController {
   static MainController? _this;
   factory MainController() => _this ??= MainController._();
   MainController._() : super();
@@ -86,8 +86,6 @@ class MainController extends StateXController {
     for (final data in dbCategories) {
       _model.categories.add(data["category"].toString());
     }
-
-    logExpenseData();
   }
 
   Future<void> addExpense(Expense expense) async {
@@ -169,6 +167,42 @@ class MainController extends StateXController {
     );
   }
 
+  static DatetimeRange getThisWeekRange() {
+    final today = DateTime.now();
+    final startOffet = today.weekday - 1;
+    final endOffset = 8 - today.weekday;
+
+    final thisMonday = DateTime(
+      today.year,
+      today.month,
+      today.day - startOffet,
+    );
+
+    final nextMonday = DateTime(
+      today.year,
+      today.month,
+      today.day + endOffset,
+    );
+
+    return DatetimeRange(thisMonday, nextMonday);
+  }
+
+  static DatetimeRange getThisMonthRange() {
+    final today = DateTime.now();
+    final thisMonthStart = DateTime(today.year, today.month);
+    final nextMonthStart = DateTime(today.year, today.month + 1);
+
+    return DatetimeRange(thisMonthStart, nextMonthStart);
+  }
+
+  static DatetimeRange getThisYearRange() {
+    final today = DateTime.now();
+    final thisYearStart = DateTime(today.year);
+    final nextYearStart = DateTime(today.year + 1);
+
+    return DatetimeRange(thisYearStart, nextYearStart);
+  }
+
   void deleteExpense(Expense expense) {
     _database.delete(
       _model.expenseTable,
@@ -182,31 +216,13 @@ class MainController extends StateXController {
 
     if (_model.expenseData.isEmpty) return dailyData;
 
-    final today = DateTime.now();
-    final startOffet = today.weekday - 1;
-    final endOffset = 8 - today.weekday;
-
-    final lastSunday = today.copyWith(
-      day: today.day - startOffet,
-      hour: 0,
-      minute: 0,
-      second: 0,
-      millisecond: 0,
-      microsecond: 0,
-    );
-
-    final nextMonday = today.copyWith(
-      day: today.day + endOffset,
-      hour: 0,
-      minute: 0,
-      second: 0,
-      millisecond: 0,
-      microsecond: 0,
-    );
+    final range = getThisWeekRange();
+    final thisMonday = range.start;
+    final nextMonday = range.end;
 
     for (final dailySection in _model.expenseData) {
       final sectionDate = dailySection.first.datetime;
-      if (sectionDate.isAfter(lastSunday) && sectionDate.isBefore(nextMonday)) {
+      if (sectionDate.isAfter(thisMonday) && sectionDate.isBefore(nextMonday)) {
         final index = sectionDate.weekday - 1;
         for (final expense in dailySection) {
           dailyData[index] += expense.amount;
@@ -218,9 +234,9 @@ class MainController extends StateXController {
   }
 
   List<int> getThisMonthWeeklyTotal() {
-    final today = DateTime.now();
-    final thisMonthStart = DateTime(today.year, today.month);
-    final nextMonthStart = DateTime(today.year, today.month + 1);
+    final range = getThisMonthRange();
+    final thisMonthStart = range.start;
+    final nextMonthStart = range.end;
 
     final numDays = nextMonthStart.copyWith(day: 0).day;
 
@@ -243,9 +259,9 @@ class MainController extends StateXController {
   List<int> getThisYearMonthlyTotal() {
     var monthlyData = List<int>.filled(12, 0, growable: false);
 
-    final today = DateTime.now();
-    final thisYearStart = DateTime(today.year);
-    final nextYearStart = DateTime(today.year + 1);
+    final range = getThisYearRange();
+    final thisYearStart = range.start;
+    final nextYearStart = range.end;
 
     for (final data in _model.expenseData) {
       final sectionDate = data.first.datetime;
