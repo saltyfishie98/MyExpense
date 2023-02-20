@@ -559,6 +559,7 @@ class ExpenseChart extends StatelessWidget {
         padding: const EdgeInsets.all(15.0),
         child: Column(
           children: [
+            const SizedBox(width: double.infinity, height: 3),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -574,7 +575,7 @@ class ExpenseChart extends StatelessWidget {
                 ),
                 Text(
                   "\$${_createTotalStr()}",
-                  style: const TextStyle(fontSize: 30),
+                  style: const TextStyle(fontSize: 30, inherit: false),
                 ),
               ],
             ),
