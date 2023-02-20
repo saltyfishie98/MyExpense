@@ -91,6 +91,73 @@ class _HomePageState extends StateX<HomePage> {
   }
 
   Widget dailyEntryView(ThemeData theme) {
+    void toEditExpense(Expense expense) {
+      final page = MaterialPageRoute(
+        builder: (context) => ExpenseEntry(
+          "Edit\nExpense:",
+          onNewExpense: null,
+          onEditExpense: () {
+            setState(() {
+              expenseChart = ExpenseChart(
+                dailyTotal: ctrlr.getThisWeekDailyTotal(),
+              );
+            });
+          },
+          expense: expense,
+        ),
+      );
+
+      Navigator.push(context, page);
+    }
+
+    void toDeleteExpense(Expense expense) {}
+
+    void toModifyPrompt(Expense expense) {
+      Widget button(String label, {required Function() onTap}) {
+        return InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            child: Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 25,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return SizedBox(
+            width: double.infinity,
+            height: 175,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                button("Edit", onTap: () {
+                  Navigator.pop(context);
+                  toEditExpense(expense);
+                }),
+                button("Delete", onTap: () {
+                  Navigator.pop(context);
+                  toDeleteExpense(expense);
+                }),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
     return ListView.builder(
       itemCount: ctrlr.dailySectionsCount,
       itemBuilder: (context, index) {
@@ -110,7 +177,7 @@ class _HomePageState extends StateX<HomePage> {
           //// Entry List //////////////////////////////////////////////////////////
           content: _dailyEntries(
             context,
-            onLongPress: toEditExpense,
+            onLongPress: toModifyPrompt,
             entries: data,
           ),
         );
@@ -118,44 +185,25 @@ class _HomePageState extends StateX<HomePage> {
     );
   }
 
-  void toEditExpense(expense) {
-    final page = MaterialPageRoute(
-      builder: (context) => ExpenseEntry(
-        "Edit\nExpense:",
-        onNewExpense: null,
-        onEditExpense: () {
-          setState(() {
-            expenseChart = ExpenseChart(
-              dailyTotal: ctrlr.getThisWeekDailyTotal(),
-            );
-          });
-        },
-        expense: expense,
-      ),
-    );
-
-    Navigator.push(context, page);
-  }
-
-  void toAddExpense() async {
-    final page = MaterialPageRoute(
-      builder: (context) => ExpenseEntry(
-        "Add\nExpense:",
-        onNewExpense: () {
-          setState(() {
-            expenseChart = ExpenseChart(
-              dailyTotal: ctrlr.getThisWeekDailyTotal(),
-            );
-          });
-        },
-        onEditExpense: null,
-      ),
-    );
-
-    Navigator.push(context, page);
-  }
-
   Widget addEntryButton() {
+    void toAddExpense() async {
+      final page = MaterialPageRoute(
+        builder: (context) => ExpenseEntry(
+          "Add\nExpense:",
+          onNewExpense: () {
+            setState(() {
+              expenseChart = ExpenseChart(
+                dailyTotal: ctrlr.getThisWeekDailyTotal(),
+              );
+            });
+          },
+          onEditExpense: null,
+        ),
+      );
+
+      Navigator.push(context, page);
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 30.0),
       child: FloatingActionButton(
