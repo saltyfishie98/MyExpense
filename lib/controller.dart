@@ -174,7 +174,7 @@ class MainController extends StateXController {
   }
 
   List<int> getThisWeekDailyTotal() {
-    var weeklyData = [0, 0, 0, 0, 0, 0, 0];
+    var weeklyData = List<int>.filled(7, 0, growable: false);
 
     if (_model.expenseData.isEmpty) return weeklyData;
 
@@ -211,6 +211,27 @@ class MainController extends StateXController {
     }
 
     return weeklyData;
+  }
+
+  List<int> getThisYearMonthlyTotal() {
+    var monthlyData = List<int>.filled(12, 0, growable: false);
+
+    final today = DateTime.now();
+    final thisYearStart = DateTime(today.year);
+    final nextYearStart = DateTime(today.year + 1);
+
+    for (final data in _model.expenseData) {
+      final sectionDate = data.first.datetime;
+
+      if (sectionDate.isAfter(thisYearStart) &&
+          sectionDate.isBefore(nextYearStart)) {
+        for (final expense in data) {
+          monthlyData[expense.datetime.month - 1] += expense.amount;
+        }
+      }
+    }
+
+    return monthlyData;
   }
 
   List<Expense> dailyDataAt(int index) {
