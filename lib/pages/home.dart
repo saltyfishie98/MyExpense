@@ -8,7 +8,7 @@ import 'package:my_expense/pages/expense_entry.dart';
 import 'package:my_expense/theme.dart';
 import 'package:my_expense/elements/radio_option.dart';
 
-enum GraphMode { week, year }
+enum GraphMode { week, month, year }
 
 extension ParseToString on GraphMode {
   String toShortString() {
@@ -351,32 +351,42 @@ class ExpenseChart extends StatelessWidget {
     switch (graphType) {
       case GraphMode.week:
         final dailyTotal = controller.getThisWeekDailyTotal();
-        return (dailyTotal.reduce((a, b) => a + b) / 100).toStringAsFixed(2);
+        return MainController.formatTotalStr(dailyTotal);
+
+      case GraphMode.month:
+        final weeklyTotal = controller.getThisMonthWeeklyTotal();
+        return MainController.formatTotalStr(weeklyTotal);
 
       case GraphMode.year:
         final monthlyTotal = controller.getThisYearMonthlyTotal();
-        return (monthlyTotal.reduce((a, b) => a + b) / 100).toStringAsFixed(2);
+        return MainController.formatTotalStr(monthlyTotal);
     }
   }
 
   Widget _createChart(BuildContext context) {
     switch (graphType) {
       case GraphMode.week:
-        return _dailyChart(context);
+        return _weekChart(context);
+
+      case GraphMode.month:
+        return _monthChart(context);
 
       case GraphMode.year:
-        return _monthlyChart(context);
+        return _yearChart(context);
     }
   }
 
-  Widget _monthlyChart(BuildContext context) {
-    final monthlyTotal = controller.getThisYearMonthlyTotal();
-
+  Widget _lineChart(
+    BuildContext context, {
+    required List<int> totalList,
+    double? xAxisLabelInterval,
+    Widget Function(double, TitleMeta)? xAxisLabelBuilder,
+  }) {
     List<LineChartBarData> lineData() {
       var spots = <FlSpot>[];
 
-      for (var i = 0; i < 12; ++i) {
-        spots.add(FlSpot(i.toDouble(), monthlyTotal[i] / 100.0));
+      for (var i = 0; i < totalList.length; ++i) {
+        spots.add(FlSpot(i.toDouble(), totalList[i] / 100.0));
       }
 
       final theme = Theme.of(context).extension<ElementThemes>();
@@ -414,33 +424,10 @@ class ExpenseChart extends StatelessWidget {
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
-              interval: 3,
+              interval: xAxisLabelInterval,
               reservedSize: 30,
               showTitles: true,
-              getTitlesWidget: (value, meta) {
-                final months = [
-                  "Jan",
-                  "Feb",
-                  "Mar",
-                  "Apr",
-                  "May",
-                  "Jun",
-                  "Jul",
-                  "Aug",
-                  "Sep",
-                  "Oct",
-                  "Nov",
-                  "Dec",
-                ];
-
-                return Align(
-                  alignment: FractionalOffset.bottomCenter,
-                  child: Text(
-                    months[value.toInt()],
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                );
-              },
+              getTitlesWidget: xAxisLabelBuilder,
             ),
           ),
           leftTitles: AxisTitles(
@@ -460,7 +447,60 @@ class ExpenseChart extends StatelessWidget {
     );
   }
 
-  Widget _dailyChart(BuildContext context) {
+  Widget _yearChart(BuildContext context) {
+    Widget builder(value, meta) {
+      final months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      return Align(
+        alignment: FractionalOffset.bottomCenter,
+        child: Text(
+          months[value.toInt()],
+          style: const TextStyle(fontSize: 14),
+        ),
+      );
+    }
+
+    return _lineChart(
+      context,
+      totalList: controller.getThisYearMonthlyTotal(),
+      xAxisLabelBuilder: builder,
+      xAxisLabelInterval: 3,
+    );
+  }
+
+  Widget _monthChart(BuildContext context) {
+    Widget builder(value, meta) {
+      return Align(
+        alignment: FractionalOffset.bottomCenter,
+        child: Text(
+          "${value.toInt() + 1}",
+          style: const TextStyle(fontSize: 14),
+        ),
+      );
+    }
+
+    return _lineChart(
+      context,
+      totalList: controller.getThisMonthWeeklyTotal(),
+      xAxisLabelInterval: 3,
+      xAxisLabelBuilder: builder,
+    );
+  }
+
+  Widget _weekChart(BuildContext context) {
     final dailyTotal = controller.getThisWeekDailyTotal();
 
     final theme = Theme.of(context).extension<ElementThemes>();
@@ -579,7 +619,7 @@ class ExpenseChart extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(width: double.infinity, height: 10),
+            const SizedBox(width: double.infinity, height: 20),
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15),

@@ -46,6 +46,10 @@ class MainController extends StateXController {
     return dateStr;
   }
 
+  static String formatTotalStr(List<int> list) {
+    return (list.reduce((a, b) => a + b) / 100).toStringAsFixed(2);
+  }
+
   Future<void> setup({
     required Database database,
     required String categoryTable,
@@ -174,9 +178,9 @@ class MainController extends StateXController {
   }
 
   List<int> getThisWeekDailyTotal() {
-    var weeklyData = List<int>.filled(7, 0, growable: false);
+    var dailyData = List<int>.filled(7, 0, growable: false);
 
-    if (_model.expenseData.isEmpty) return weeklyData;
+    if (_model.expenseData.isEmpty) return dailyData;
 
     final today = DateTime.now();
     final startOffet = today.weekday - 1;
@@ -205,7 +209,30 @@ class MainController extends StateXController {
       if (sectionDate.isAfter(lastSunday) && sectionDate.isBefore(nextMonday)) {
         final index = sectionDate.weekday - 1;
         for (final expense in dailySection) {
-          weeklyData[index] += expense.amount;
+          dailyData[index] += expense.amount;
+        }
+      }
+    }
+
+    return dailyData;
+  }
+
+  List<int> getThisMonthWeeklyTotal() {
+    final today = DateTime.now();
+    final thisMonthStart = DateTime(today.year, today.month);
+    final nextMonthStart = DateTime(today.year, today.month + 1);
+
+    final numDays = nextMonthStart.copyWith(day: 0).day;
+
+    var weeklyData = List<int>.filled(numDays, 0);
+
+    for (final data in _model.expenseData) {
+      final sectionDate = data.first.datetime;
+
+      if (sectionDate.isAfter(thisMonthStart) &&
+          sectionDate.isBefore(nextMonthStart)) {
+        for (final expense in data) {
+          weeklyData[expense.datetime.day - 1] += expense.amount;
         }
       }
     }
