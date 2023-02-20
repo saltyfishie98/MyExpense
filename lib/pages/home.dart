@@ -110,7 +110,14 @@ class _HomePageState extends StateX<HomePage> {
       Navigator.push(context, page);
     }
 
-    void toDeleteExpense(Expense expense) {}
+    void toDeleteExpense(Expense expense) {
+      setState(() {
+        ctrlr.deleteExpense(expense);
+        expenseChart = ExpenseChart(
+          dailyTotal: ctrlr.getThisWeekDailyTotal(),
+        );
+      });
+    }
 
     void toModifyPrompt(Expense expense) {
       Widget button(String label, {required Function() onTap}) {
@@ -162,6 +169,7 @@ class _HomePageState extends StateX<HomePage> {
       itemCount: ctrlr.dailySectionsCount,
       itemBuilder: (context, index) {
         final data = ctrlr.dailyDataAt(index);
+
         final dateStr = MainController.formatDateString(
           data.first.datetime,
         );

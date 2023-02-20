@@ -165,6 +165,14 @@ class MainController extends StateXController {
     );
   }
 
+  void deleteExpense(Expense expense) {
+    _database.delete(
+      _model.expenseTable,
+      where: "datetime='${expense.datetime}'",
+    );
+    _model.deleteExpense(expense);
+  }
+
   List<int> getThisWeekDailyTotal() {
     var weeklyData = [0, 0, 0, 0, 0, 0, 0];
 
@@ -260,20 +268,33 @@ class _Model {
   void editExpense({
     required Expense oldExpense,
     required Expense newExpense,
-  }) async {
-    var section = expenseData.firstWhere(
+  }) {
+    final index = findDailySectionWith(oldExpense.datetime);
+
+    addExpense(newExpense);
+    expenseData[index].remove(oldExpense);
+  }
+
+  void deleteExpense(Expense expense) {
+    final index = findDailySectionWith(expense.datetime);
+    expenseData[index].remove(expense);
+
+    if (expenseData[index].isEmpty) {
+      expenseData.removeAt(index);
+    }
+  }
+
+  int findDailySectionWith(DateTime datetime) {
+    return expenseData.indexWhere(
       (dailySection) {
         final sectionDate = dailySection.first.datetime;
-        final expenseDate = oldExpense.datetime;
+        final expenseDate = datetime;
 
         return sectionDate.year == expenseDate.year &&
             sectionDate.month == expenseDate.month &&
             sectionDate.day == expenseDate.day;
       },
     );
-
-    addExpense(newExpense);
-    section.remove(oldExpense);
   }
 }
 
