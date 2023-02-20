@@ -333,10 +333,10 @@ class _Model {
     required Expense oldExpense,
     required Expense newExpense,
   }) {
-    final index = findDailySectionWith(oldExpense.datetime);
-
+    // ORDER MATTERS!!!
     addExpense(newExpense);
-    expenseData[index].remove(oldExpense);
+    expenseData[findDailySectionWith(oldExpense.datetime)].remove(oldExpense);
+    expenseData.removeWhere((element) => element.isEmpty);
   }
 
   void deleteExpense(Expense expense) {
