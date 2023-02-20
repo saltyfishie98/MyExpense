@@ -43,7 +43,6 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
   TextEditingController titleInputCtrl = TextEditingController();
   TextEditingController amountInputCtrl = TextEditingController(text: "0.00");
   late MainController _ctrlr;
-  bool edittingError = false;
 
   //// Implementations //////////////////////////////////////
 
@@ -53,14 +52,9 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final entryFontSize = widget.labelFontSize - 2;
-    final entryCellHeight = widget.labelFontSize + 10;
-    const double entrySpacing = 17;
-
-    //// Setup /////////////////////////////////////////////////////////////////////////////////////
-
-    if (widget.expense != null && !edittingError) {
+  void initState() {
+    super.initState();
+    if (widget.expense != null) {
       _selectedCategory = widget.expense!.category;
       _selectedDate = widget.expense!.datetime;
       titleInputCtrl = TextEditingController(text: widget.expense!.title);
@@ -68,6 +62,15 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
         text: (widget.expense!.amount / 100).toStringAsFixed(2),
       );
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entryFontSize = widget.labelFontSize - 2;
+    final entryCellHeight = widget.labelFontSize + 10;
+    const double entrySpacing = 17;
+
+    //// Setup /////////////////////////////////////////////////////////////////////////////////////
 
     amountInputCtrl.addListener(() {
       amountInputCtrl.selection = TextSelection.fromPosition(TextPosition(
@@ -85,7 +88,6 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
         setState(() {
           emptyTitle ? _titleFilled = false : _titleFilled = true;
           emptyAmount ? _amountFilled = false : _amountFilled = true;
-          edittingError = true;
         });
         return true;
       }
