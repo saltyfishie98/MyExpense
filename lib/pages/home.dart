@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:my_expense/elements/entry_card.dart';
 import 'package:state_extended/state_extended.dart';
 import 'package:my_expense/controller.dart';
 import 'package:my_expense/pages/expense_entry.dart';
@@ -21,12 +22,16 @@ extension StringExtension on String {
   }
 }
 
+//// Home Page Widget //////////////////////////////////////////////////////////////////////////////
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
   State createState() => _HomePageState();
 }
+
+//// Home Page Widget States ///////////////////////////////////////////////////////////////////////
 
 class _HomePageState extends StateX<HomePage> {
   GraphMode currentGraph = GraphMode.week;
@@ -180,7 +185,7 @@ class _HomePageState extends StateX<HomePage> {
           ),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, i) => _entryCard(
+              (context, i) => createEntryCard(
                 context,
                 expense: data[i],
                 onLongPress: toModifyPrompt,
@@ -271,31 +276,6 @@ class _HomePageState extends StateX<HomePage> {
   }
 }
 
-class SectionHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final String title;
-  final double height;
-
-  SectionHeaderDelegate(this.title, [this.height = 50]);
-
-  @override
-  Widget build(context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: Theme.of(context).primaryColor,
-      alignment: Alignment.center,
-      child: Text(title),
-    );
-  }
-
-  @override
-  double get maxExtent => height;
-
-  @override
-  double get minExtent => height;
-
-  @override
-  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) => false;
-}
-
 //// Radio Selector ////////////////////////////////////////////////////////////////////////////////
 
 Widget _radioOption<T>(
@@ -345,95 +325,33 @@ Widget _radioOption<T>(
   );
 }
 
-//// Daily Entries Section /////////////////////////////////////////////////////////////////////////
-
-Widget _entryCard(
-  BuildContext context, {
-  required Expense expense,
-  required Function(Expense) onLongPress,
-}) {
-  final elmtThemes = Theme.of(context).extension<ElementThemes>();
-
-  return Material(
-    child: Container(
-      width: double.infinity,
-      height: 75,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
-      ),
-      child: InkWell(
-        onLongPress: () => onLongPress(expense),
-        onTap: () {},
-        customBorder: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(10.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  //// Icon ////////////////////////////////////////////////////////////////////
-
-                  Container(
-                    width: 55,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: elmtThemes?.accent,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                            color: elmtThemes?.shadow ?? Colors.black,
-                            blurRadius: 5.0,
-                            offset: const Offset(1, 2))
-                      ],
-                    ),
-                  ),
-
-                  //// Title ///////////////////////////////////////////////////////////////////
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 7.0, horizontal: 13),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          expense.title,
-                          style: const TextStyle(fontSize: 17),
-                        ),
-                        Text(
-                          expense.category,
-                          style: const TextStyle(fontSize: 10),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              //// Amount //////////////////////////////////////////////////////////////////////////
-
-              Text(
-                "\$${(expense.amount / 100).toStringAsFixed(2)}",
-                style: const TextStyle(fontSize: 20),
-              )
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
 //// Expense Chart /////////////////////////////////////////////////////////////////////////////////
 
 class ExpenseChart extends StatelessWidget {
   const ExpenseChart({super.key, required this.dailyTotal});
 
   final List<int> dailyTotal;
+
+  List<BarChartGroupData> _thisWeekChart(
+    BuildContext context, {
+    required List<int> dailyTotal,
+  }) {
+    var out = <BarChartGroupData>[];
+
+    for (var i = 0; i < 7; ++i) {
+      out.add(BarChartGroupData(
+        x: i,
+        barRods: [
+          BarChartRodData(
+            toY: dailyTotal[i].toDouble() / 100,
+            color: Theme.of(context).extension<ElementThemes>()?.onCard,
+          )
+        ],
+      ));
+    }
+
+    return out;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -534,25 +452,4 @@ class ExpenseChart extends StatelessWidget {
       ),
     );
   }
-}
-
-List<BarChartGroupData> _thisWeekChart(
-  BuildContext context, {
-  required List<int> dailyTotal,
-}) {
-  var out = <BarChartGroupData>[];
-
-  for (var i = 0; i < 7; ++i) {
-    out.add(BarChartGroupData(
-      x: i,
-      barRods: [
-        BarChartRodData(
-          toY: dailyTotal[i].toDouble() / 100,
-          color: Theme.of(context).extension<ElementThemes>()?.onCard,
-        )
-      ],
-    ));
-  }
-
-  return out;
 }
