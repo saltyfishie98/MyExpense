@@ -151,6 +151,8 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                     ),
                   )),
 
+              const SizedBox(width: double.infinity, height: 0),
+
               Column(
                 children: [
                   //// Title ////////////////////////////////////
@@ -312,8 +314,9 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                   //// Amount ///////////////////////////////////
 
                   const SizedBox(
-                      width: double.infinity,
-                      height: entrySpacing == 0 ? 0 : entrySpacing - 10),
+                    width: double.infinity,
+                    height: entrySpacing == 0 ? 0 : entrySpacing - 10,
+                  ),
                   Row(
                     children: [
                       Expanded(
