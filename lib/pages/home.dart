@@ -7,9 +7,8 @@ import 'package:my_expense/controller.dart';
 import 'package:my_expense/pages/expense_entry.dart';
 import 'package:my_expense/theme.dart';
 import 'package:my_expense/elements/radio_option.dart';
-import 'dart:math' as math;
 
-enum GraphMode { daily, monthly }
+enum GraphMode { week, year }
 
 extension ParseToString on GraphMode {
   String toShortString() {
@@ -35,7 +34,7 @@ class HomePage extends StatefulWidget {
 //// Home Page Widget States ///////////////////////////////////////////////////////////////////////
 
 class _HomePageState extends StateX<HomePage> {
-  GraphMode currentGraph = GraphMode.daily;
+  GraphMode currentGraph = GraphMode.week;
   late MainController ctrlr;
   ExpenseChart? chartView;
 
@@ -350,11 +349,11 @@ class ExpenseChart extends StatelessWidget {
 
   String _createTotalStr() {
     switch (graphType) {
-      case GraphMode.daily:
+      case GraphMode.week:
         final dailyTotal = controller.getThisWeekDailyTotal();
         return (dailyTotal.reduce((a, b) => a + b) / 100).toStringAsFixed(2);
 
-      case GraphMode.monthly:
+      case GraphMode.year:
         final monthlyTotal = controller.getThisYearMonthlyTotal();
         return (monthlyTotal.reduce((a, b) => a + b) / 100).toStringAsFixed(2);
     }
@@ -362,10 +361,10 @@ class ExpenseChart extends StatelessWidget {
 
   Widget _createChart(BuildContext context) {
     switch (graphType) {
-      case GraphMode.daily:
+      case GraphMode.week:
         return _dailyChart(context);
 
-      case GraphMode.monthly:
+      case GraphMode.year:
         return _monthlyChart(context);
     }
   }
