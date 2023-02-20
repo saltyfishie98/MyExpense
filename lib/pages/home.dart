@@ -444,6 +444,7 @@ class ExpenseChart extends StatelessWidget {
         gridData: FlGridData(show: false),
         minY: 0,
       ),
+      key: UniqueKey(),
     );
   }
 
