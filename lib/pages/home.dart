@@ -464,6 +464,10 @@ class ExpenseChart extends StatelessWidget {
   Widget _dailyChart(BuildContext context) {
     final dailyTotal = controller.getThisWeekDailyTotal();
 
+    final theme = Theme.of(context).extension<ElementThemes>();
+    final gradientStart = theme?.onCard.withOpacity(1);
+    final gradientEnd = theme?.onCard.withOpacity(0.3);
+
     List<BarChartGroupData> barChartData() {
       var out = <BarChartGroupData>[];
 
@@ -473,7 +477,14 @@ class ExpenseChart extends StatelessWidget {
           barRods: [
             BarChartRodData(
               toY: dailyTotal[i].toDouble() / 100,
-              color: Theme.of(context).extension<ElementThemes>()?.onCard,
+              gradient: LinearGradient(
+                colors: [
+                  gradientStart ?? Colors.green.shade400,
+                  gradientEnd ?? Colors.green.shade400.withOpacity(0.3)
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             )
           ],
         ));
