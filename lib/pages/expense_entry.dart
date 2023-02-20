@@ -278,7 +278,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                               Feedback.forTap(context);
                               var pickedDate = await showDatePicker(
                                 context: context,
-                                initialDate: DateTime.now(),
+                                initialDate: _selectedDate,
                                 firstDate: DateTime(1950),
                                 lastDate: DateTime.now(),
                               );
