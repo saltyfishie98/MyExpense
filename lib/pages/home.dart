@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:sticky_headers/sticky_headers.dart';
+import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:state_extended/state_extended.dart';
 import 'package:my_expense/controller.dart';
 import 'package:my_expense/pages/expense_entry.dart';
@@ -165,32 +165,34 @@ class _HomePageState extends StateX<HomePage> {
       );
     }
 
-    return ListView.builder(
-      itemCount: ctrlr.dailySectionsCount,
-      itemBuilder: (context, index) {
-        final data = ctrlr.dailyDataAt(index);
+    var sliverList = <SliverStickyHeader>[];
 
-        final dateStr = MainController.formatDateString(
-          data.first.datetime,
-        );
+    for (var i = 0; i < ctrlr.dailySectionsCount; ++i) {
+      final data = ctrlr.dailyDataAt(i);
 
-        return StickyHeader(
-          //// Date Label //////////////////////////////////////////////////////////
-          header: _entryDateHeader(
-            context,
-            theme: theme,
-            dateStr: dateStr,
+      sliverList.add(
+        SliverStickyHeader(
+          header: Container(
+            color: theme.canvasColor,
+            child: Text(
+              MainController.formatDateString(data.first.datetime),
+            ),
           ),
-
-          //// Entry List //////////////////////////////////////////////////////////
-          content: _dailyEntries(
-            context,
-            onLongPress: toModifyPrompt,
-            entries: data,
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, i) => _entryCard(
+                context,
+                expense: data[i],
+                onLongPress: toModifyPrompt,
+              ),
+              childCount: data.length,
+            ),
           ),
-        );
-      },
-    );
+        ),
+      );
+    }
+
+    return CustomScrollView(slivers: sliverList);
   }
 
   Widget addEntryButton() {
@@ -248,15 +250,17 @@ class _HomePageState extends StateX<HomePage> {
               const SizedBox(width: double.infinity, height: 15),
               Expanded(
                 flex: 1,
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    //// Daily Entries Section View ////////////////////////////////////////////////
-                    dailyEntryView(theme),
+                child: SizedBox(
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      //// Daily Entries Section View ////////////////////////////////////////////////
+                      dailyEntryView(theme),
 
-                    //// Add Entry Button //////////////////////////////////////////////////////////
-                    addEntryButton(),
-                  ],
+                      //// Add Entry Button //////////////////////////////////////////////////////////
+                      addEntryButton(),
+                    ],
+                  ),
                 ),
               )
             ],
@@ -265,6 +269,31 @@ class _HomePageState extends StateX<HomePage> {
       ),
     );
   }
+}
+
+class SectionHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final String title;
+  final double height;
+
+  SectionHeaderDelegate(this.title, [this.height = 50]);
+
+  @override
+  Widget build(context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Theme.of(context).primaryColor,
+      alignment: Alignment.center,
+      child: Text(title),
+    );
+  }
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  double get minExtent => height;
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) => false;
 }
 
 //// Radio Selector ////////////////////////////////////////////////////////////////////////////////
@@ -318,115 +347,84 @@ Widget _radioOption<T>(
 
 //// Daily Entries Section /////////////////////////////////////////////////////////////////////////
 
-Widget _entryDateHeader(
+Widget _entryCard(
   BuildContext context, {
-  required ThemeData theme,
-  required String dateStr,
+  required Expense expense,
+  required Function(Expense) onLongPress,
 }) {
-  return Container(
-    width: double.infinity,
-    color: theme.canvasColor,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 5,
+  final elmtThemes = Theme.of(context).extension<ElementThemes>();
+
+  return Material(
+    child: Container(
+      width: double.infinity,
+      height: 75,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
       ),
-      child: Text(
-        dateStr,
-        style: TextStyle(
-          fontSize: 15,
-          color: theme.extension<ElementThemes>()?.h3Color,
+      child: InkWell(
+        onLongPress: () => onLongPress(expense),
+        onTap: () {},
+        customBorder: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  //// Icon ////////////////////////////////////////////////////////////////////
+
+                  Container(
+                    width: 55,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      color: elmtThemes?.accent,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                            color: elmtThemes?.shadow ?? Colors.black,
+                            blurRadius: 5.0,
+                            offset: const Offset(1, 2))
+                      ],
+                    ),
+                  ),
+
+                  //// Title ///////////////////////////////////////////////////////////////////
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 7.0, horizontal: 13),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          expense.title,
+                          style: const TextStyle(fontSize: 17),
+                        ),
+                        Text(
+                          expense.category,
+                          style: const TextStyle(fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              //// Amount //////////////////////////////////////////////////////////////////////////
+
+              Text(
+                "\$${(expense.amount / 100).toStringAsFixed(2)}",
+                style: const TextStyle(fontSize: 20),
+              )
+            ],
+          ),
         ),
       ),
     ),
-  );
-}
-
-Widget _dailyEntries(
-  BuildContext context, {
-  required Function(Expense) onLongPress,
-  required List<Expense> entries,
-}) {
-  final elmtThemes = Theme.of(context).extension<ElementThemes>();
-  List<Widget> entryList = [];
-
-  for (final expense in entries) {
-    entryList.add(
-      Container(
-        width: double.infinity,
-        height: 75,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
-        ),
-        child: InkWell(
-          onLongPress: () => onLongPress(expense),
-          onTap: () {},
-          customBorder: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(elmtThemes?.cardRadius ?? 5),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    //// Icon ////////////////////////////////////////////////////////////////////////
-
-                    Container(
-                      width: 55,
-                      height: 55,
-                      decoration: BoxDecoration(
-                        color: elmtThemes?.accent,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                              color: elmtThemes?.shadow ?? Colors.black,
-                              blurRadius: 5.0,
-                              offset: const Offset(1, 2))
-                        ],
-                      ),
-                    ),
-
-                    //// Title ///////////////////////////////////////////////////////////////////////
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 7.0, horizontal: 13),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            expense.title,
-                            style: const TextStyle(fontSize: 17),
-                          ),
-                          Text(
-                            expense.category,
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                //// Amount //////////////////////////////////////////////////////////////////////////
-
-                Text(
-                  "\$${(expense.amount / 100).toStringAsFixed(2)}",
-                  style: const TextStyle(fontSize: 20),
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  return Column(
-    children: entryList,
   );
 }
 
