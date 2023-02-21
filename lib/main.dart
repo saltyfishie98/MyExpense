@@ -7,15 +7,13 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:my_expense/controller.dart";
 import "package:my_expense/pages/home.dart";
+import "package:my_expense/tables.dart";
 import "package:my_expense/theme.dart";
 
 import "package:sqflite_common_ffi/sqflite_ffi.dart";
 import "package:sqflite/sqflite.dart";
 
 void main() async {
-  const expenseTable = "Expenses";
-  const categoryTable = "Categories";
-
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Platform.isWindows || Platform.isLinux) {
@@ -26,7 +24,7 @@ void main() async {
 
   final db = await openDatabase(
     // TODO: Rename on release
-    "expenses.sqlite",
+    "expenses-t1.sqlite",
     version: 1,
     onUpgrade: (db, oldVersion, newVersion) {
       log("database upgraded!");
@@ -35,34 +33,42 @@ void main() async {
       log("database created!");
 
       db.execute("""
-        CREATE TABLE $categoryTable(
-          title TEXT PRIMARY KEY, 
-          icon INT, 
-          color INT,
-          position INT
+        CREATE TABLE ${CategoryTable.tableName}(
+          ${CategoryTable.title} TEXT PRIMARY KEY, 
+          ${CategoryTable.icon} INT, 
+          ${CategoryTable.color} INT,
+          ${CategoryTable.position} INT
         );
       """);
       db.execute("""
-        CREATE TABLE $expenseTable(
-          datetime TEXT PRIMARY KEY,
-          amount INT,
-          title TEXT,
-          category TEXT NOT NULL,
-          FOREIGN KEY (category) REFERENCES Categories(title)
+        CREATE TABLE ${ExpenseTable.tableName}(
+          ${ExpenseTable.datetime} TEXT PRIMARY KEY,
+          ${ExpenseTable.amount} INT,
+          ${ExpenseTable.title} TEXT,
+          ${ExpenseTable.category} TEXT NOT NULL,
+          FOREIGN KEY (category) REFERENCES Categories(${CategoryTable.title})
         );
       """);
-      db.insert(categoryTable, {"title": "Food", "position": 0});
-      db.insert(categoryTable, {"title": "Shopping", "position": 1});
-      db.insert(categoryTable, {"title": "Bicycle", "position": 2});
-      db.insert(categoryTable, {"title": "Studies", "position": 3});
+      db.insert(CategoryTable.tableName, {
+        CategoryTable.title: "Food",
+        "position": 0,
+      });
+      db.insert(CategoryTable.tableName, {
+        CategoryTable.title: "Shopping",
+        "position": 1,
+      });
+      db.insert(CategoryTable.tableName, {
+        CategoryTable.title: "Bicycle",
+        "position": 2,
+      });
+      db.insert(CategoryTable.tableName, {
+        CategoryTable.title: "Studies",
+        "position": 3,
+      });
     },
   );
 
-  await MainController().setup(
-    database: db,
-    categoryTable: categoryTable,
-    expenseTable: expenseTable,
-  );
+  await MainController().setup(database: db);
 
   runApp(const MyApp());
 }

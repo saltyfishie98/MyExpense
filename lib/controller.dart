@@ -1,7 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:my_expense/tables.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:state_extended/state_extended.dart';
 
@@ -20,7 +19,7 @@ class MainController extends StateXController {
   factory MainController() => _this ??= MainController._();
   MainController._() : super();
 
-  _Model _model = _Model(categoryTable: "", expenseTable: "");
+  _Model _model = _Model();
   late Database _database;
 
   int get dailySectionsCount => _model.expenseData.length;
@@ -51,23 +50,15 @@ class MainController extends StateXController {
     return (list.reduce((a, b) => a + b) / 100).toStringAsFixed(2);
   }
 
-  Future<void> setup({
-    required Database database,
-    required String categoryTable,
-    required String expenseTable,
-  }) async {
+  Future<void> setup({required Database database}) async {
     _database = database;
-    _model = _Model(
-      categoryTable: categoryTable,
-      expenseTable: expenseTable,
-    );
+    _model = _Model();
 
     final res = await Future.wait([
-      _database.query(_model.expenseTable),
+      _database.query(ExpenseTable.tableName),
       _database.query(
-        _model.categoryTable,
-        columns: ["title", "icon", "color", "position"],
-        orderBy: "position",
+        CategoryTable.tableName,
+        orderBy: CategoryTable.position,
       ),
     ]);
 
@@ -77,18 +68,20 @@ class MainController extends StateXController {
     for (final data in dbExpense) {
       _model.addExpense(
         Expense(
-          datetime: DateTime.parse(data["datetime"].toString()),
-          amount: data["amount"] as int,
-          title: data["title"].toString(),
-          category: data["category"].toString(),
+          datetime: DateTime.parse(
+            data[ExpenseTable.datetime].toString(),
+          ),
+          amount: data[ExpenseTable.amount] as int,
+          title: data[ExpenseTable.title].toString(),
+          category: data[ExpenseTable.category].toString(),
         ),
       );
     }
 
     for (final data in dbCategories) {
-      final colorData = data["color"]?.toString();
-      final iconData = data["icon"]?.toString();
-      final posData = data["position"]?.toString();
+      final colorData = data[CategoryTable.color]?.toString();
+      final iconData = data[CategoryTable.icon]?.toString();
+      final posData = data[CategoryTable.position]?.toString();
 
       final position = posData == null ? -1 : int.parse(posData.toString());
       final colorCode =
@@ -98,7 +91,7 @@ class MainController extends StateXController {
 
       _model.categories.add(
         Category(
-          title: data["title"].toString(),
+          title: data[CategoryTable.title].toString(),
           color: Color(colorCode),
           icon: Icon(IconData(iconCode, fontFamily: 'MaterialIcons')),
           position: position,
@@ -115,8 +108,8 @@ class MainController extends StateXController {
     /// As such 2 exactly same datetime would cause an database insertion error.
     while (true) {
       final check = await _database.query(
-        _model.expenseTable,
-        where: "datetime = '${expense.datetime}'",
+        ExpenseTable.tableName,
+        where: "${ExpenseTable.datetime} = '${expense.datetime}'",
       );
 
       if (check.isEmpty) {
@@ -139,27 +132,29 @@ class MainController extends StateXController {
     }
 
     /// Actualy insert into the database after the above check
-    _database.insert(_model.expenseTable, {
-      "datetime": expense.datetime.toString(),
-      "amount": expense.amount,
-      "title": expense.title,
-      "category": expense.category,
+    _database.insert(ExpenseTable.tableName, {
+      ExpenseTable.datetime: expense.datetime.toString(),
+      ExpenseTable.amount: expense.amount,
+      ExpenseTable.title: expense.title,
+      ExpenseTable.category: expense.category,
     });
 
     /// Check the inserted expense exist in the database
     final insert = await _database.query(
-      _model.expenseTable,
-      where: "datetime = '${expense.datetime}'",
+      ExpenseTable.tableName,
+      where: "${ExpenseTable.datetime} = '${expense.datetime}'",
     );
 
     /// Copy the database's expense into the model
     for (final data in insert) {
       _model.addExpense(
         Expense(
-          datetime: DateTime.parse(data["datetime"].toString()),
-          amount: data["amount"] as int,
-          title: data["title"].toString(),
-          category: data["category"].toString(),
+          datetime: DateTime.parse(
+            data[ExpenseTable.datetime].toString(),
+          ),
+          amount: data[ExpenseTable.amount] as int,
+          title: data[ExpenseTable.title].toString(),
+          category: data[ExpenseTable.category].toString(),
         ),
       );
     }
@@ -170,14 +165,14 @@ class MainController extends StateXController {
     required Expense newExpense,
   }) async {
     await _database.update(
-      _model.expenseTable,
+      ExpenseTable.tableName,
       {
-        "datetime": newExpense.datetime.toString(),
-        "amount": newExpense.amount,
-        "title": newExpense.title,
-        "category": newExpense.category,
+        ExpenseTable.datetime: newExpense.datetime.toString(),
+        ExpenseTable.amount: newExpense.amount,
+        ExpenseTable.title: newExpense.title,
+        ExpenseTable.category: newExpense.category,
       },
-      where: "datetime='${oldExpense.datetime}'",
+      where: "${ExpenseTable.datetime}='${oldExpense.datetime}'",
     );
 
     _model.editExpense(
@@ -224,8 +219,8 @@ class MainController extends StateXController {
 
   void deleteExpense(Expense expense) {
     _database.delete(
-      _model.expenseTable,
-      where: "datetime='${expense.datetime}'",
+      ExpenseTable.tableName,
+      where: "${ExpenseTable.datetime}='${expense.datetime}'",
     );
     _model.deleteExpense(expense);
   }
@@ -306,27 +301,27 @@ class MainController extends StateXController {
   void updateCategories() {
     for (final category in _model.categories) {
       _database.update(
-        _model.categoryTable,
-        {"position": category.position},
-        where: "title='${category.title}'",
+        CategoryTable.tableName,
+        {CategoryTable.position: category.position},
+        where: "${CategoryTable.title}='${category.title}'",
       );
     }
   }
 
   Future<void> addCategory(Category category) async {
-    await _database.insert(_model.categoryTable, {
-      "title": category.title,
-      "icon": category.icon.icon!.codePoint,
-      "color": category.color.value,
-      "position": category.position,
+    await _database.insert(CategoryTable.tableName, {
+      CategoryTable.title: category.title,
+      CategoryTable.icon: category.icon.icon!.codePoint,
+      CategoryTable.color: category.color.value,
+      CategoryTable.position: category.position,
     });
 
     final res = await _database.query(
-      _model.categoryTable,
+      CategoryTable.tableName,
       columns: [
-        "position",
+        CategoryTable.position,
       ],
-      where: "title='${category.title}'",
+      where: "${CategoryTable.title}='${category.title}'",
     );
 
     if (res.length == 1) {
@@ -336,14 +331,6 @@ class MainController extends StateXController {
 }
 
 class _Model {
-  _Model({
-    required this.categoryTable,
-    required this.expenseTable,
-  });
-
-  final String categoryTable;
-  final String expenseTable;
-
   List<List<Expense>> expenseData = [];
   List<Category> categories = [];
 
