@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_expense/pages/edit_categories.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -9,7 +10,7 @@ class SettingsPage extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         child: Padding(
-          padding: EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(10.0),
           child: Text(
             label,
             textAlign: TextAlign.center,
@@ -39,7 +40,14 @@ class SettingsPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _button("Edit Categories.", onTap: () {}),
+                      _button("Edit Categories.", onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CategoryEditPage(),
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
