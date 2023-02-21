@@ -26,28 +26,35 @@ void main() async {
 
   final db = await openDatabase(
     // TODO: Rename on release
-    "expenses3.sqlite",
-    version: 3,
+    "expenses.sqlite",
+    version: 1,
     onUpgrade: (db, oldVersion, newVersion) {
       log("database upgraded!");
     },
     onCreate: (db, version) {
       log("database created!");
 
-      db.execute("CREATE TABLE $categoryTable(category TEXT PRIMARY KEY);");
+      db.execute("""
+        CREATE TABLE $categoryTable(
+          title TEXT PRIMARY KEY, 
+          icon INT, 
+          color INT,
+          position INT
+        );
+      """);
       db.execute("""
         CREATE TABLE $expenseTable(
           datetime TEXT PRIMARY KEY,
           amount INT,
           title TEXT,
           category TEXT NOT NULL,
-          FOREIGN KEY (category) REFERENCES Categories(category)
+          FOREIGN KEY (category) REFERENCES Categories(title)
         );
       """);
-      db.insert(categoryTable, {"category": "Food"});
-      db.insert(categoryTable, {"category": "Shopping"});
-      db.insert(categoryTable, {"category": "Bicycle"});
-      db.insert(categoryTable, {"category": "Studies"});
+      db.insert(categoryTable, {"title": "Food"});
+      db.insert(categoryTable, {"title": "Shopping"});
+      db.insert(categoryTable, {"title": "Bicycle"});
+      db.insert(categoryTable, {"title": "Studies"});
     },
   );
 

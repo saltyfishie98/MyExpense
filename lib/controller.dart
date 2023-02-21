@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:state_extended/state_extended.dart';
@@ -23,7 +24,7 @@ class MainController extends StateXController {
   late Database _database;
 
   int get dailySectionsCount => _model.expenseData.length;
-  List<String> get categories => _model.categories;
+  List<Category> get categories => _model.categories;
 
   static int formatAmountToInsert(double amount) {
     return (amount * 100).toInt();
@@ -65,7 +66,7 @@ class MainController extends StateXController {
       _database.query(_model.expenseTable),
       _database.query(
         _model.categoryTable,
-        columns: ["category"],
+        columns: ["title", "icon", "color", "position"],
       ),
     ]);
 
@@ -84,7 +85,24 @@ class MainController extends StateXController {
     }
 
     for (final data in dbCategories) {
-      _model.categories.add(data["category"].toString());
+      final colorData = data["color"]?.toString();
+      final iconData = data["icon"]?.toString();
+      final posData = data["position"]?.toString();
+
+      final position = posData == null ? -1 : int.parse(posData.toString());
+      final colorCode =
+          colorData == null ? Colors.red.value : int.parse(colorData);
+      final iconCode =
+          iconData == null ? 0xe237 : int.parse(iconData.toString());
+
+      _model.categories.add(
+        Category(
+          title: data["title"].toString(),
+          color: Color(colorCode),
+          icon: Icon(IconData(iconCode, fontFamily: 'MaterialIcons')),
+          position: position,
+        ),
+      );
     }
   }
 
@@ -283,6 +301,14 @@ class MainController extends StateXController {
   List<Expense> dailyDataAt(int index) {
     return _model.expenseData[index];
   }
+
+  void refreshCategories(List<Category> categories) {
+    _model.categories = categories;
+  }
+
+  void addCategory(Category category) {
+    _database.insert(_model.categoryTable, {"title": category.title});
+  }
 }
 
 class _Model {
@@ -295,7 +321,7 @@ class _Model {
   final String expenseTable;
 
   List<List<Expense>> expenseData = [];
-  List<String> categories = [];
+  List<Category> categories = [];
 
   void addExpense(Expense expense) {
     // Create a new daily section if none exists
@@ -366,7 +392,7 @@ class _Model {
 }
 
 class Expense {
-  Expense({
+  const Expense({
     required this.datetime,
     required this.amount,
     required this.title,
@@ -394,6 +420,39 @@ class Expense {
       amount: amount,
       title: title,
       category: category,
+    );
+  }
+}
+
+class Category {
+  const Category({
+    required this.title,
+    required this.color,
+    required this.icon,
+    required this.position,
+  });
+
+  final String title;
+  final Color color;
+  final Icon icon;
+  final int position;
+
+  Category copyWith({
+    String? title,
+    Color? color,
+    Icon? icon,
+    int? position,
+  }) {
+    title ??= this.title;
+    color ??= this.color;
+    icon ??= this.icon;
+    position ??= this.position;
+
+    return Category(
+      title: title,
+      color: color,
+      icon: icon,
+      position: position,
     );
   }
 }
