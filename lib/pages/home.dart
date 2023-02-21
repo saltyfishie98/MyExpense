@@ -347,7 +347,13 @@ class ExpenseChart extends StatelessWidget {
 
   final MainController controller;
   final GraphMode graphType;
-  final double labelSize = 22;
+
+  final double _labelSize = 22;
+  final double _tooltipFontSize = 12;
+  final EdgeInsets _tooltipPadding = const EdgeInsets.symmetric(
+    vertical: 5,
+    horizontal: 10,
+  );
 
   String _createTotalStr() {
     switch (graphType) {
@@ -406,11 +412,11 @@ class ExpenseChart extends StatelessWidget {
         children: [
           Text(
             dayLabel,
-            style: TextStyle(fontSize: labelSize),
+            style: TextStyle(fontSize: _labelSize),
           ),
           Text(
             monthLabel,
-            style: TextStyle(fontSize: labelSize - 5),
+            style: TextStyle(fontSize: _labelSize - 5),
           ),
         ],
       );
@@ -429,15 +435,15 @@ class ExpenseChart extends StatelessWidget {
     final monthStr = DateFormat("MMM, yyyy").format(DateTime.now());
     return Text(
       monthStr,
-      style: TextStyle(fontSize: labelSize),
+      style: TextStyle(fontSize: _labelSize),
     );
   }
 
   Widget _yearLabel() {
-    final monthStr = DateFormat("Yr yyyy").format(DateTime.now());
+    final monthStr = DateFormat("Yr, yyyy").format(DateTime.now());
     return Text(
       monthStr,
-      style: TextStyle(fontSize: labelSize),
+      style: TextStyle(fontSize: _labelSize),
     );
   }
 
@@ -445,54 +451,64 @@ class ExpenseChart extends StatelessWidget {
     BuildContext context, {
     required List<int> totalList,
     double? xAxisLabelInterval,
-    Widget Function(double, TitleMeta)? xAxisLabelBuilder,
+    String Function(double)? xAxisLabelFormatter,
   }) {
-    List<LineChartBarData> lineData() {
-      var spots = <FlSpot>[];
+    final theme = Theme.of(context).extension<ElementThemes>();
+    final startBelowBarColor = Color(theme?.onCard.value ?? 0).withOpacity(0.4);
+    final endBelowBarColor = Color(theme?.onCard.value ?? 0).withOpacity(0);
 
-      for (var i = 0; i < totalList.length; ++i) {
-        spots.add(FlSpot(i.toDouble(), totalList[i] / 100.0));
-      }
+    var spots = <FlSpot>[];
+    for (var i = 0; i < totalList.length; ++i) {
+      spots.add(FlSpot(
+        i.toDouble(),
+        totalList[i] / 100.0,
+      ));
+    }
 
-      final theme = Theme.of(context).extension<ElementThemes>();
-
-      final startBelowBarColor =
-          Color(theme?.onCard.value ?? 0).withOpacity(0.4);
-      final endBelowBarColor = Color(theme?.onCard.value ?? 0).withOpacity(0);
-
-      return [
-        LineChartBarData(
-          spots: spots,
-          color: theme?.onCard,
-          isCurved: true,
-          dotData: FlDotData(show: false),
-          belowBarData: BarAreaData(
-            show: true,
-            gradient: LinearGradient(
-              colors: [startBelowBarColor, endBelowBarColor],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+    List<LineChartBarData> lineData = [
+      LineChartBarData(
+        spots: spots,
+        color: theme?.onCard,
+        isCurved: true,
+        dotData: FlDotData(show: false),
+        belowBarData: BarAreaData(
+          show: true,
+          gradient: LinearGradient(
+            colors: [startBelowBarColor, endBelowBarColor],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          shadow: Shadow(
-            blurRadius: 15,
-            color: theme?.shadow.withOpacity(0.3) ?? Colors.black26,
-            offset: const Offset(0, 10),
-          ),
-        )
-      ];
+        ),
+        shadow: Shadow(
+          blurRadius: 15,
+          color: theme?.shadow.withOpacity(0.3) ?? Colors.black26,
+          offset: const Offset(0, 10),
+        ),
+      )
+    ];
+
+    Widget labelBuider(double value, TitleMeta meta) {
+      return Align(
+        alignment: FractionalOffset.bottomCenter,
+        child: Text(
+          xAxisLabelFormatter != null
+              ? xAxisLabelFormatter(value)
+              : value.toString(),
+          style: const TextStyle(fontSize: 14),
+        ),
+      );
     }
 
     return LineChart(
       LineChartData(
-        lineBarsData: lineData(),
+        lineBarsData: lineData,
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               interval: xAxisLabelInterval,
               reservedSize: 30,
               showTitles: true,
-              getTitlesWidget: xAxisLabelBuilder,
+              getTitlesWidget: xAxisLabelFormatter != null ? labelBuider : null,
             ),
           ),
           leftTitles: AxisTitles(
@@ -505,6 +521,43 @@ class ExpenseChart extends StatelessWidget {
             sideTitles: SideTitles(showTitles: false),
           ),
         ),
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            tooltipBgColor: theme?.accent,
+            tooltipPadding: _tooltipPadding,
+            getTooltipItems: (touchedSpots) {
+              var out = <LineTooltipItem>[];
+
+              for (final spotData in touchedSpots) {
+                final tooltipLabel = xAxisLabelFormatter != null
+                    ? xAxisLabelFormatter(spotData.x)
+                    : "";
+
+                out.add(
+                  LineTooltipItem(
+                    "$tooltipLabel:\n\$${spotData.y.toStringAsFixed(2)}",
+                    TextStyle(
+                      fontSize: _tooltipFontSize,
+                    ),
+                  ),
+                );
+              }
+
+              return out;
+            },
+          ),
+          getTouchedSpotIndicator: (barData, spotIndexes) {
+            final barStyle = FlLine(color: theme?.accent);
+            final spotStyle = FlDotData(show: true);
+
+            return spotIndexes
+                .map((index) => TouchedSpotIndicatorData(
+                      barStyle,
+                      spotStyle,
+                    ))
+                .toList();
+          },
+        ),
         borderData: FlBorderData(show: false),
         gridData: FlGridData(show: false),
         minY: 0,
@@ -514,74 +567,70 @@ class ExpenseChart extends StatelessWidget {
   }
 
   Widget _yearChart(BuildContext context) {
-    Widget builder(value, meta) {
-      final months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
+    final totalList = controller.getThisYearMonthlyTotal();
+    var months = List<String>.filled(totalList.length, "");
 
-      return Align(
-        alignment: FractionalOffset.bottomCenter,
-        child: Text(
-          months[value.toInt()],
-          style: const TextStyle(fontSize: 14),
-        ),
-      );
-    }
+    months[0] = "Jan";
+    months[1] = "Feb";
+    months[2] = "Mar";
+    months[3] = "Apr";
+    months[4] = "May";
+    months[5] = "Jun";
+    months[6] = "Jul";
+    months[7] = "Aug";
+    months[8] = "Sep";
+    months[9] = "Oct";
+    months[10] = "Nov";
+    months[11] = "Dec";
 
     return _lineChart(
       context,
-      totalList: controller.getThisYearMonthlyTotal(),
-      xAxisLabelBuilder: builder,
+      totalList: totalList,
+      xAxisLabelFormatter: (value) => months[value.toInt()],
       xAxisLabelInterval: 3,
     );
   }
 
   Widget _monthChart(BuildContext context) {
-    Widget builder(value, meta) {
-      return Align(
-        alignment: FractionalOffset.bottomCenter,
-        child: Text(
-          "${value.toInt() + 1}",
-          style: const TextStyle(fontSize: 14),
-        ),
-      );
-    }
-
     return _lineChart(
       context,
       totalList: controller.getThisMonthWeeklyTotal(),
       xAxisLabelInterval: 3,
-      xAxisLabelBuilder: builder,
+      xAxisLabelFormatter: (value) => "${value.toInt() + 1}",
     );
   }
 
   Widget _weekChart(BuildContext context) {
-    final dailyTotal = controller.getThisWeekDailyTotal();
+    final dailyTotal =
+        controller.getThisWeekDailyTotal().map((e) => e / 100.0).toList();
 
     final theme = Theme.of(context).extension<ElementThemes>();
-    final gradientStart = theme?.onCard.withOpacity(1);
-    final gradientEnd = theme?.onCard.withOpacity(0.3);
+    final gradientEnd = theme?.onCard.withOpacity(1);
+    final gradientStart = theme?.onCard.withOpacity(0.5);
+    final dateRange = MainController.getThisWeekRange();
 
-    List<BarChartGroupData> barChartData() {
-      var out = <BarChartGroupData>[];
+    final days = [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun",
+    ];
 
-      for (var i = 0; i < 7; ++i) {
-        out.add(BarChartGroupData(
+    final dateStrList = [
+      for (var i = dateRange.start.day; i < dateRange.end.day; i++) i
+    ];
+
+    var barChartData = <BarChartGroupData>[];
+    for (var i = 0; i < 7; ++i) {
+      barChartData.add(
+        BarChartGroupData(
           x: i,
           barRods: [
             BarChartRodData(
-              toY: dailyTotal[i].toDouble() / 100,
+              toY: dailyTotal[i],
               gradient: LinearGradient(
                 colors: [
                   gradientStart ?? Colors.green.shade400,
@@ -592,32 +641,34 @@ class ExpenseChart extends StatelessWidget {
               ),
             )
           ],
-        ));
-      }
-
-      return out;
+        ),
+      );
     }
 
     return BarChart(
       BarChartData(
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            tooltipPadding: _tooltipPadding,
+            tooltipBgColor: theme?.accent,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final dateStr = dateStrList[groupIndex];
+              final dayStr = days[groupIndex];
+              return BarTooltipItem(
+                "$dayStr $dateStr:\n\$${dailyTotal[groupIndex].toStringAsFixed(2)}",
+                TextStyle(fontSize: _tooltipFontSize),
+              );
+            },
+          ),
+        ),
         alignment: BarChartAlignment.spaceBetween,
-        barGroups: barChartData(),
+        barGroups: barChartData,
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               reservedSize: 24,
               showTitles: true,
               getTitlesWidget: (value, meta) {
-                final days = [
-                  "Mon",
-                  "Tue",
-                  "Wed",
-                  "Thu",
-                  "Fri",
-                  "Sat",
-                  "Sun",
-                ];
-
                 return Align(
                   alignment: FractionalOffset.bottomCenter,
                   child: Text(
@@ -688,7 +739,11 @@ class ExpenseChart extends StatelessWidget {
                     ),
                     Text(
                       "\$${_createTotalStr()}",
-                      style: const TextStyle(fontSize: 30, inherit: false),
+                      style: TextStyle(
+                        fontSize: 30,
+                        inherit: false,
+                        color: Theme.of(context).colorScheme.onBackground,
+                      ),
                     ),
                   ],
                 ),
