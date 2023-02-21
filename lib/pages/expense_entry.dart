@@ -130,264 +130,284 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       widget.onEditExpense!();
     }
 
+    Widget pageTitle = Align(
+      alignment: FractionalOffset.topLeft,
+      child: Text(
+        widget.label,
+        maxLines: 2,
+        style: const TextStyle(
+          fontSize: 38,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+
+    Widget titleEntry = Row(
+      children: [
+        Expanded(
+          flex: widget.labelFlexValue,
+          child: Align(
+            alignment: FractionalOffset.centerRight,
+            child: Text(
+              "Title:",
+              maxLines: 1,
+              style: TextStyle(fontSize: widget.labelFontSize),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: widget.entryFlexValue,
+          child: Container(
+            margin: const EdgeInsets.only(left: 5, right: 5),
+            height: entryCellHeight,
+            child: TextField(
+              controller: titleInputCtrl,
+              textCapitalization: TextCapitalization.sentences,
+              textAlign: TextAlign.center,
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.only(bottom: 5),
+              ),
+              style: TextStyle(fontSize: entryFontSize),
+            ),
+          ),
+        ),
+        _entryErrorWidget(
+          !_titleFilled,
+          boxSize: Size(10, entryCellHeight),
+        )
+      ],
+    );
+
+    Widget categorySelect = Row(
+      children: [
+        Expanded(
+          flex: widget.labelFlexValue,
+          child: Align(
+            alignment: FractionalOffset.centerRight,
+            child: Text(
+              "Category:",
+              maxLines: 1,
+              style: TextStyle(fontSize: widget.labelFontSize),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: widget.entryFlexValue,
+          child: Container(
+            margin: const EdgeInsets.only(left: 5, right: 0),
+            height: entryCellHeight,
+            child: DropdownButton<String>(
+              value: _selectedCategory,
+              underline: const SizedBox(),
+              isExpanded: true,
+              icon: const Icon(Icons.arrow_drop_down_circle_outlined),
+              onChanged: (String? value) {
+                setState(() {
+                  _selectedCategory = value!;
+                });
+              },
+              items: _ctrlr.categories.map<DropdownMenuItem<String>>(
+                (String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Align(
+                      alignment: FractionalOffset.bottomCenter,
+                      child: Text(
+                        value,
+                        style: TextStyle(
+                          fontSize: entryFontSize,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ).toList(),
+            ),
+          ),
+        )
+      ],
+    );
+
+    Widget dateSelect = Row(
+      children: [
+        Expanded(
+          flex: widget.labelFlexValue,
+          child: Align(
+            alignment: FractionalOffset.centerRight,
+            child: Text(
+              "Date:",
+              maxLines: 1,
+              style: TextStyle(fontSize: widget.labelFontSize),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: widget.entryFlexValue,
+          child: Container(
+            margin: const EdgeInsets.only(left: 5, right: 0),
+            height: entryCellHeight,
+            child: GestureDetector(
+              onTap: () async {
+                Feedback.forTap(context);
+                var pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: _selectedDate,
+                  firstDate: DateTime(1950),
+                  lastDate: DateTime.now(),
+                );
+
+                if (pickedDate == null) {
+                  return;
+                }
+
+                final now = DateTime.now();
+                if (pickedDate.year == now.year &&
+                    pickedDate.month == now.month &&
+                    pickedDate.day == now.day) {
+                  pickedDate = now;
+                }
+
+                setState(() => _selectedDate = pickedDate!);
+              },
+              child: Align(
+                alignment: FractionalOffset.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: Text(
+                    DateFormat('MMM dd, yyyy').format(_selectedDate),
+                    style: TextStyle(fontSize: entryFontSize),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+
+    Widget amountEntry = Row(
+      children: [
+        Expanded(
+          flex: widget.labelFlexValue,
+          child: Align(
+            alignment: FractionalOffset.centerRight,
+            child: Text(
+              "Amount:",
+              maxLines: 1,
+              style: TextStyle(fontSize: widget.labelFontSize),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: widget.entryFlexValue,
+          child: Container(
+            margin: const EdgeInsets.only(left: 5, right: 5),
+            height: entryCellHeight + 50,
+            child: TextField(
+              controller: amountInputCtrl,
+              keyboardType: const TextInputType.numberWithOptions(),
+              textAlign: TextAlign.right,
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.only(bottom: 5),
+              ),
+              style: TextStyle(fontSize: entryFontSize + 20),
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.allow(
+                  RegExp("[0-9]"),
+                ),
+                PriceFormatter(),
+              ],
+            ),
+          ),
+        ),
+        _entryErrorWidget(
+          !_amountFilled,
+          boxSize: Size(10, entryCellHeight),
+        )
+      ],
+    );
+
+    Widget okButton = FloatingActionButton(
+      heroTag: "add-button",
+      onPressed:
+          widget.expense == null ? addExpenseCallback : editExpenseCallback,
+      shape: const CircleBorder(),
+      child: const Icon(Icons.check),
+    );
+
+    Widget closeButton = FloatingActionButton(
+      onPressed: () {
+        Navigator.pop(context);
+      },
+      shape: const CircleBorder(),
+      backgroundColor: Colors.redAccent,
+      child: const Icon(Icons.close),
+    );
+
     //// Widget ////////////////////////////////////////////////////////////////////////////////////
 
-    return Scaffold(
-      body: Center(
-        child: SizedBox(
-          width: 300,
-          height: 600,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Align(
-                  //// Add Expense //////////////////////////////
-
-                  alignment: FractionalOffset.topLeft,
-                  child: Text(
-                    widget.label,
-                    maxLines: 2,
-                    style: const TextStyle(
-                      fontSize: 38,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  )),
-
-              const SizedBox(width: double.infinity, height: 0),
-
-              Column(
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).requestFocus(FocusNode());
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 50,
+                right: 50,
+                bottom: 90,
+                top: 70,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  //// Title ////////////////////////////////////
+                  //// Add Expense //////////////////////////////
+                  pageTitle,
 
-                  Row(
+                  Column(
                     children: [
-                      Expanded(
-                        flex: widget.labelFlexValue,
-                        child: Align(
-                          alignment: FractionalOffset.centerRight,
-                          child: Text(
-                            "Title:",
-                            maxLines: 1,
-                            style: TextStyle(fontSize: widget.labelFontSize),
-                          ),
-                        ),
+                      //
+                      titleEntry,
+
+                      const SizedBox(
+                        width: double.infinity,
+                        height: entrySpacing,
                       ),
-                      Expanded(
-                        flex: widget.entryFlexValue,
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 5, right: 5),
-                          height: entryCellHeight,
-                          child: TextField(
-                            controller: titleInputCtrl,
-                            textCapitalization: TextCapitalization.sentences,
-                            textAlign: TextAlign.center,
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              contentPadding: EdgeInsets.only(bottom: 5),
-                            ),
-                            style: TextStyle(fontSize: entryFontSize),
-                          ),
-                        ),
+
+                      categorySelect,
+
+                      const SizedBox(
+                        width: double.infinity,
+                        height: entrySpacing,
                       ),
-                      _entryErrorWidget(
-                        !_titleFilled,
-                        boxSize: Size(10, entryCellHeight),
-                      )
+
+                      dateSelect,
+
+                      const SizedBox(
+                        width: double.infinity,
+                        height: entrySpacing == 0 ? 0 : entrySpacing - 10,
+                      ),
+
+                      amountEntry,
                     ],
                   ),
 
-                  //// Category Select //////////////////////////
-
-                  const SizedBox(width: double.infinity, height: entrySpacing),
-                  Row(
+                  Column(
                     children: [
-                      Expanded(
-                        flex: widget.labelFlexValue,
-                        child: Align(
-                          alignment: FractionalOffset.centerRight,
-                          child: Text(
-                            "Category:",
-                            maxLines: 1,
-                            style: TextStyle(fontSize: widget.labelFontSize),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: widget.entryFlexValue,
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 5, right: 0),
-                          height: entryCellHeight,
-                          child: DropdownButton<String>(
-                            value: _selectedCategory,
-                            underline: const SizedBox(),
-                            isExpanded: true,
-                            icon: const Icon(
-                                Icons.arrow_drop_down_circle_outlined),
-                            onChanged: (String? value) {
-                              setState(() {
-                                _selectedCategory = value!;
-                              });
-                            },
-                            items:
-                                _ctrlr.categories.map<DropdownMenuItem<String>>(
-                              (String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Align(
-                                    alignment: FractionalOffset.bottomCenter,
-                                    child: Text(
-                                      value,
-                                      style: TextStyle(
-                                        fontSize: entryFontSize,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ).toList(),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-
-                  //// Date /////////////////////////////////////
-
-                  const SizedBox(width: double.infinity, height: entrySpacing),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: widget.labelFlexValue,
-                        child: Align(
-                          alignment: FractionalOffset.centerRight,
-                          child: Text(
-                            "Date:",
-                            maxLines: 1,
-                            style: TextStyle(fontSize: widget.labelFontSize),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: widget.entryFlexValue,
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 5, right: 0),
-                          height: entryCellHeight,
-                          child: GestureDetector(
-                            onTap: () async {
-                              Feedback.forTap(context);
-                              var pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: _selectedDate,
-                                firstDate: DateTime(1950),
-                                lastDate: DateTime.now(),
-                              );
-
-                              if (pickedDate == null) {
-                                return;
-                              }
-
-                              final now = DateTime.now();
-                              if (pickedDate.year == now.year &&
-                                  pickedDate.month == now.month &&
-                                  pickedDate.day == now.day) {
-                                pickedDate = now;
-                              }
-
-                              setState(() => _selectedDate = pickedDate!);
-                            },
-                            child: Align(
-                              alignment: FractionalOffset.bottomCenter,
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 20),
-                                child: Text(
-                                  DateFormat('MMM dd, yyyy')
-                                      .format(_selectedDate),
-                                  style: TextStyle(fontSize: entryFontSize),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  //// Amount ///////////////////////////////////
-
-                  const SizedBox(
-                    width: double.infinity,
-                    height: entrySpacing == 0 ? 0 : entrySpacing - 10,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: widget.labelFlexValue,
-                        child: Align(
-                          alignment: FractionalOffset.centerRight,
-                          child: Text(
-                            "Amount:",
-                            maxLines: 1,
-                            style: TextStyle(fontSize: widget.labelFontSize),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: widget.entryFlexValue,
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 5, right: 5),
-                          height: entryCellHeight + 50,
-                          child: TextField(
-                            controller: amountInputCtrl,
-                            keyboardType:
-                                const TextInputType.numberWithOptions(),
-                            textAlign: TextAlign.right,
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              contentPadding: EdgeInsets.only(bottom: 5),
-                            ),
-                            style: TextStyle(fontSize: entryFontSize + 20),
-                            inputFormatters: <TextInputFormatter>[
-                              FilteringTextInputFormatter.allow(
-                                RegExp("[0-9]"),
-                              ),
-                              PriceFormatter(),
-                            ],
-                          ),
-                        ),
-                      ),
-                      _entryErrorWidget(
-                        !_amountFilled,
-                        boxSize: Size(10, entryCellHeight),
-                      )
+                      okButton,
+                      const SizedBox(width: double.infinity, height: 30),
+                      closeButton,
                     ],
                   ),
                 ],
               ),
-
-              //// Check Mark Button ///////////////////////////////
-
-              const SizedBox(width: double.infinity, height: 0),
-              FloatingActionButton(
-                heroTag: "add-button",
-                onPressed: widget.expense == null
-                    ? addExpenseCallback
-                    : editExpenseCallback,
-                shape: const CircleBorder(),
-                child: const Icon(Icons.check),
-              ),
-
-              //// Back Button //////////////////////////////
-
-              FloatingActionButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                shape: const CircleBorder(),
-                backgroundColor: Colors.redAccent,
-                child: const Icon(Icons.close),
-              ),
-            ],
+            ),
           ),
         ),
       ),
