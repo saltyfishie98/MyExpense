@@ -67,6 +67,7 @@ class MainController extends StateXController {
       _database.query(
         _model.categoryTable,
         columns: ["title", "icon", "color", "position"],
+        orderBy: "position",
       ),
     ]);
 
@@ -302,12 +303,35 @@ class MainController extends StateXController {
     return _model.expenseData[index];
   }
 
-  void refreshCategories(List<Category> categories) {
-    _model.categories = categories;
+  void updateCategories() {
+    for (final category in _model.categories) {
+      _database.update(
+        _model.categoryTable,
+        {"position": category.position},
+        where: "title='${category.title}'",
+      );
+    }
   }
 
-  void addCategory(Category category) {
-    _database.insert(_model.categoryTable, {"title": category.title});
+  Future<void> addCategory(Category category) async {
+    await _database.insert(_model.categoryTable, {
+      "title": category.title,
+      "icon": category.icon.icon!.codePoint,
+      "color": category.color.value,
+      "position": category.position,
+    });
+
+    final res = await _database.query(
+      _model.categoryTable,
+      columns: [
+        "position",
+      ],
+      where: "title='${category.title}'",
+    );
+
+    if (res.length == 1) {
+      _model.categories.insert(0, category);
+    }
   }
 }
 

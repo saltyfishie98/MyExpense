@@ -51,10 +51,10 @@ void main() async {
           FOREIGN KEY (category) REFERENCES Categories(title)
         );
       """);
-      db.insert(categoryTable, {"title": "Food"});
-      db.insert(categoryTable, {"title": "Shopping"});
-      db.insert(categoryTable, {"title": "Bicycle"});
-      db.insert(categoryTable, {"title": "Studies"});
+      db.insert(categoryTable, {"title": "Food", "position": 0});
+      db.insert(categoryTable, {"title": "Shopping", "position": 1});
+      db.insert(categoryTable, {"title": "Bicycle", "position": 2});
+      db.insert(categoryTable, {"title": "Studies", "position": 3});
     },
   );
 

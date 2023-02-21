@@ -10,7 +10,7 @@ class CategoryEditPage extends StatefulWidget {
 }
 
 class _CategoryEditPageState extends StateX<CategoryEditPage> {
-  List<String> _categories = [];
+  List<Category> _categories = [];
   late MainController ctrlr;
 
   _CategoryEditPageState() : super(MainController()) {
@@ -25,6 +25,81 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    var categoryTiles = <Widget>[];
+    var titleInputCtrl = TextEditingController();
+
+    for (var category in _categories) {
+      categoryTiles.add(
+        ListTile(
+          minVerticalPadding: 17,
+          onLongPress: () {},
+          leading: category.icon,
+          title: Text(
+            category.title,
+          ),
+          trailing: Container(
+            margin: const EdgeInsets.only(right: 20),
+            width: 15,
+            height: 15,
+            decoration: BoxDecoration(
+              color: category.color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          key: Key(category.title),
+        ),
+      );
+    }
+
+    void toEditCategoryPopup() {
+      Widget editPanel = Center(
+        child: Column(
+          children: [
+            TextField(
+              controller: titleInputCtrl,
+            ),
+            FloatingActionButton(
+              onPressed: () {
+                final test = Category(
+                  title: titleInputCtrl.text,
+                  color: Colors.blue,
+                  icon: const Icon(Icons.check),
+                  position: 0,
+                );
+
+                ctrlr.addCategory(test).then((value) {
+                  setState(() {
+                    _categories = ctrlr.categories;
+                  });
+                  Navigator.pop(context);
+                });
+              },
+            ),
+          ],
+        ),
+      );
+
+      showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return editPanel;
+        },
+      );
+
+      // const test = Category(
+      //   title: "Test",
+      //   color: Colors.blue,
+      //   icon: Icon(Icons.check),
+      //   position: 0,
+      // );
+
+      // await ctrlr.addCategory(test);
+
+      // setState(() {
+      //   _categories = ctrlr.categories;
+      // });
+    }
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
@@ -44,43 +119,23 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.add,
-                        size: 35,
-                      ),
+                      onPressed: toEditCategoryPopup,
+                      padding: EdgeInsets.zero,
+                      iconSize: 35,
+                      icon: const Icon(Icons.add),
                     ),
                   ],
                 ),
                 const SizedBox(width: double.infinity, height: 5),
                 Expanded(
                   child: ReorderableListView(
-                    children: [
-                      for (int index = 0;
-                          index < _categories.length;
-                          index += 1)
-                        ListTile(
-                          minVerticalPadding: 17,
-                          onLongPress: () {},
-                          leading: const Icon(Icons.air),
-                          title: Text(
-                            _categories[index],
-                          ),
-                          trailing: Container(
-                            margin: const EdgeInsets.only(right: 20),
-                            width: 15,
-                            height: 15,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          key: Key(_categories[index]),
-                        ),
-                    ],
+                    children: categoryTiles,
                     onReorder: (int oldIndex, int newIndex) {
                       setState(
-                        () {},
+                        () {
+                          final item = _categories.removeAt(oldIndex);
+                          _categories.insert(newIndex, item);
+                        },
                       );
                     },
                   ),
@@ -91,10 +146,14 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
               padding: const EdgeInsets.only(bottom: 50),
               child: FloatingActionButton(
                 onPressed: () {
+                  for (var i = 0; i < _categories.length; ++i) {
+                    _categories[i] = _categories[i].copyWith(position: i);
+                  }
+                  ctrlr.updateCategories();
                   Navigator.pop(context);
                 },
                 shape: const CircleBorder(),
-                child: const Icon(Icons.close),
+                child: const Icon(Icons.check),
               ),
             )
           ],
