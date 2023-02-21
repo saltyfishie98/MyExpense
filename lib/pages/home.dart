@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:my_expense/elements/entry_card.dart';
 import 'package:my_expense/elements/expense_overview.dart';
+import 'package:my_expense/pages/settings.dart';
 import 'package:state_extended/state_extended.dart';
 import 'package:my_expense/controller.dart';
 import 'package:my_expense/pages/expense_entry.dart';
@@ -32,14 +33,32 @@ class _HomePageState extends StateX<HomePage> {
     );
   }
 
-  Widget headerLogo() {
-    return const Row(
+  Widget headerLogo(ThemeData theme) {
+    Widget page(BuildContext context) {
+      return const SettingsPage();
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
+        const Text(
           "MyExpense",
           style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.bold,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: page));
+          },
+          style: ButtonStyle(
+            shape: MaterialStateProperty.all(
+              const CircleBorder(),
+            ),
+          ),
+          child: const Icon(
+            Icons.settings,
           ),
         ),
       ],
@@ -237,7 +256,7 @@ class _HomePageState extends StateX<HomePage> {
             children: [
               //// Title ///////////////////////////////////////////////////////////////////////////
               const SizedBox(width: double.infinity, height: 10),
-              headerLogo(),
+              headerLogo(theme),
 
               //// Graph ///////////////////////////////////////////////////////////////////////////
               const SizedBox(width: double.infinity, height: 15),

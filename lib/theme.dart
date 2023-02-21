@@ -29,6 +29,17 @@ class AppTheme {
         useMaterial3: _useMaterial3,
         colorScheme: lightScheme,
         brightness: Brightness.light,
+        iconTheme: const IconThemeData(color: Colors.black),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            iconColor: MaterialStateProperty.all(
+              lightScheme.onBackground,
+            ),
+            backgroundColor: MaterialStateProperty.all(
+              lightScheme.surfaceVariant,
+            ),
+          ),
+        ),
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
             card: lightScheme.inversePrimary,
@@ -46,6 +57,17 @@ class AppTheme {
         useMaterial3: _useMaterial3,
         colorScheme: darkScheme,
         brightness: Brightness.dark,
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            iconColor: MaterialStateProperty.all(
+              darkScheme.onBackground,
+            ),
+            backgroundColor: MaterialStateProperty.all(
+              darkScheme.surfaceVariant,
+            ),
+          ),
+        ),
         extensions: <ThemeExtension<dynamic>>[
           ElementThemes(
             card: darkScheme.inversePrimary,
