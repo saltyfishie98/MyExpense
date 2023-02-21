@@ -222,7 +222,8 @@ class MainController extends StateXController {
 
     for (final dailySection in _model.expenseData) {
       final sectionDate = dailySection.first.datetime;
-      if (sectionDate.isAfter(thisMonday) && sectionDate.isBefore(nextMonday)) {
+      if ((sectionDate.isAfter(thisMonday) || sectionDate == thisMonday) &&
+          sectionDate.isBefore(nextMonday)) {
         final index = sectionDate.weekday - 1;
         for (final expense in dailySection) {
           dailyData[index] += expense.amount;
@@ -245,7 +246,8 @@ class MainController extends StateXController {
     for (final data in _model.expenseData) {
       final sectionDate = data.first.datetime;
 
-      if (sectionDate.isAfter(thisMonthStart) &&
+      if ((sectionDate.isAfter(thisMonthStart) ||
+              sectionDate == thisMonthStart) &&
           sectionDate.isBefore(nextMonthStart)) {
         for (final expense in data) {
           weeklyData[expense.datetime.day - 1] += expense.amount;
@@ -266,7 +268,8 @@ class MainController extends StateXController {
     for (final data in _model.expenseData) {
       final sectionDate = data.first.datetime;
 
-      if (sectionDate.isAfter(thisYearStart) &&
+      if ((sectionDate.isAfter(thisYearStart) ||
+              sectionDate == thisYearStart) &&
           sectionDate.isBefore(nextYearStart)) {
         for (final expense in data) {
           monthlyData[expense.datetime.month - 1] += expense.amount;
