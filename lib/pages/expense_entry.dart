@@ -94,11 +94,11 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       return false;
     }
 
-    void addExpenseCallback() async {
+    void addExpenseCallback() {
       if (notValidInputs()) return;
 
-      Navigator.pop(context);
-      await _ctrlr.addExpense(
+      _ctrlr
+          .addExpense(
         Expense(
           datetime: _selectedDate,
           amount: MainController.formatAmountToInsert(
@@ -106,16 +106,20 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
           title: titleInputCtrl.text,
           category: _selectedCategoryStr,
         ),
+      )
+          .then(
+        (value) {
+          widget.onNewExpense!();
+          Navigator.pop(context);
+        },
       );
-
-      widget.onNewExpense!();
     }
 
-    void editExpenseCallback() async {
+    void editExpenseCallback() {
       if (notValidInputs()) return;
 
-      Navigator.pop(context);
-      await _ctrlr.editExpense(
+      _ctrlr
+          .editExpense(
         oldExpense: widget.expense!,
         newExpense: Expense(
           title: titleInputCtrl.text,
@@ -125,9 +129,13 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
           category: _selectedCategoryStr,
           datetime: _selectedDate,
         ),
+      )
+          .then(
+        (value) {
+          widget.onEditExpense!();
+          Navigator.pop(context);
+        },
       );
-
-      widget.onEditExpense!();
     }
 
     Widget pageTitle = Align(
