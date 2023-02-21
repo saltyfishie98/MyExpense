@@ -33,6 +33,44 @@ class _HomePageState extends StateX<HomePage> {
     );
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Column(
+            children: [
+              const SizedBox(width: double.infinity, height: 10),
+              headerLogo(theme),
+              const SizedBox(width: double.infinity, height: 15),
+              chartView!,
+              const SizedBox(width: double.infinity, height: 20),
+              radioSelector(theme),
+              const SizedBox(width: double.infinity, height: 15),
+              Expanded(
+                flex: 1,
+                child: SizedBox(
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      dailyEntryView(theme),
+                      addEntryButton(),
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  //// Header Logo /////////////////////////////////////////////////////////////////////////////////
+
   Widget headerLogo(ThemeData theme) {
     Widget page(BuildContext context) {
       return const SettingsPage();
@@ -62,6 +100,55 @@ class _HomePageState extends StateX<HomePage> {
           ),
         ),
       ],
+    );
+  }
+
+  //// Selection ///////////////////////////////////////////////////////////////////////////////////
+
+  Widget _radioOption<T>(
+    BuildContext context, {
+    required String title,
+    required T value,
+    required T groupValue,
+    required ValueChanged<T?> onChanged,
+  }) {
+    final theme = Theme.of(context);
+    final elmtThemes = theme.extension<ElementThemes>();
+
+    Widget createWidget({required Color? color, bool useShadow = true}) {
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 3),
+        width: 100,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: !useShadow
+              ? null
+              : [
+                  BoxShadow(
+                    blurRadius: 7,
+                    spreadRadius: -1,
+                    offset: const Offset(0, 1),
+                    color: elmtThemes?.shadow ?? Colors.grey,
+                  ),
+                ],
+          color: color,
+        ),
+        child: Center(
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    return RadioOption<T>(
+      value: value,
+      groupValue: groupValue,
+      onChanged: onChanged,
+      activeWidget: createWidget(color: elmtThemes?.card ?? Colors.white),
+      dormentWidget: createWidget(color: null, useShadow: false),
     );
   }
 
@@ -106,6 +193,8 @@ class _HomePageState extends StateX<HomePage> {
       ),
     );
   }
+
+  //// Daily Entries Section View //////////////////////////////////////////////////////////////////
 
   Widget dailyEntryView(ThemeData theme) {
     void toEditExpense(Expense expense) {
@@ -214,6 +303,8 @@ class _HomePageState extends StateX<HomePage> {
     return CustomScrollView(slivers: sliverList);
   }
 
+  //// Add Entry Button ////////////////////////////////////////////////////////////////////////////
+
   Widget addEntryButton() {
     void toAddExpense() async {
       final page = MaterialPageRoute(
@@ -243,99 +334,4 @@ class _HomePageState extends StateX<HomePage> {
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            children: [
-              //// Title ///////////////////////////////////////////////////////////////////////////
-              const SizedBox(width: double.infinity, height: 10),
-              headerLogo(theme),
-
-              //// Graph ///////////////////////////////////////////////////////////////////////////
-              const SizedBox(width: double.infinity, height: 15),
-              chartView!,
-
-              //// Selection ///////////////////////////////////////////////////////////////////////
-              const SizedBox(width: double.infinity, height: 20),
-              radioSelector(theme),
-
-              //// Entries /////////////////////////////////////////////////////////////////////////
-              const SizedBox(width: double.infinity, height: 15),
-              Expanded(
-                flex: 1,
-                child: SizedBox(
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      //// Daily Entries Section View ////////////////////////////////////////////////
-                      dailyEntryView(theme),
-
-                      //// Add Entry Button //////////////////////////////////////////////////////////
-                      addEntryButton(),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-//// Radio Selector ////////////////////////////////////////////////////////////////////////////////
-
-Widget _radioOption<T>(
-  BuildContext context, {
-  required String title,
-  required T value,
-  required T groupValue,
-  required ValueChanged<T?> onChanged,
-}) {
-  final theme = Theme.of(context);
-  final elmtThemes = theme.extension<ElementThemes>();
-
-  Widget createWidget({required Color? color, bool useShadow = true}) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 3),
-      width: 100,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: !useShadow
-            ? null
-            : [
-                BoxShadow(
-                  blurRadius: 7,
-                  spreadRadius: -1,
-                  offset: const Offset(0, 1),
-                  color: elmtThemes?.shadow ?? Colors.grey,
-                ),
-              ],
-        color: color,
-      ),
-      child: Center(
-        child: Text(
-          title,
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-
-  return RadioOption<T>(
-    value: value,
-    groupValue: groupValue,
-    onChanged: onChanged,
-    activeWidget: createWidget(color: elmtThemes?.card ?? Colors.white),
-    dormentWidget: createWidget(color: null, useShadow: false),
-  );
 }
