@@ -1,18 +1,12 @@
+library controller;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:my_expense/tables.dart';
+import 'package:my_expense/data/tables.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:state_extended/state_extended.dart';
 
-class DatetimeRange {
-  const DatetimeRange(
-    this.start,
-    this.end,
-  );
-
-  final DateTime start;
-  final DateTime end;
-}
+part 'model.dart';
 
 class MainController extends StateXController {
   static MainController? _this;
@@ -25,30 +19,7 @@ class MainController extends StateXController {
   int get dailySectionsCount => _model.expenseData.length;
   List<Category> get categories => _model.categories;
 
-  static int formatAmountToInsert(double amount) {
-    return (amount * 100).toInt();
-  }
-
-  static String formatDateString(DateTime datetime) {
-    final today = DateTime.now();
-
-    final bool isToday = datetime.year == today.year &&
-        datetime.month == today.month &&
-        datetime.day == today.day;
-
-    late String dateStr;
-    if (datetime.year == today.year) {
-      dateStr = isToday ? "Today" : DateFormat('MMM dd').format(datetime);
-    } else {
-      dateStr = DateFormat('MMM dd, yyyy').format(datetime);
-    }
-
-    return dateStr;
-  }
-
-  static String formatTotalStr(List<int> list) {
-    return (list.reduce((a, b) => a + b) / 100).toStringAsFixed(2);
-  }
+  //// Setup ///////////////////////////////////////////////////////////////////////////////////////
 
   Future<void> setup({required Database database}) async {
     _database = database;
@@ -99,6 +70,8 @@ class MainController extends StateXController {
       );
     }
   }
+
+  //// Expense /////////////////////////////////////////////////////////////////////////////////////
 
   Future<void> addExpense(Expense expense) async {
     /// Checks if current expense's datatime exists in the database;
@@ -181,6 +154,74 @@ class MainController extends StateXController {
     );
   }
 
+  void deleteExpense(Expense expense) {
+    _database.delete(
+      ExpenseTable.tableName,
+      where: "${ExpenseTable.datetime}='${expense.datetime}'",
+    );
+    _model.deleteExpense(expense);
+  }
+
+  //// Categories //////////////////////////////////////////////////////////////////////////////////
+
+  void updateCategories() {
+    for (final category in _model.categories) {
+      _database.update(
+        CategoryTable.tableName,
+        {CategoryTable.position: category.position},
+        where: "${CategoryTable.title}='${category.title}'",
+      );
+    }
+  }
+
+  Future<void> addCategory(Category category) async {
+    await _database.insert(CategoryTable.tableName, {
+      CategoryTable.title: category.title,
+      CategoryTable.icon: category.icon.icon!.codePoint,
+      CategoryTable.color: category.color.value,
+      CategoryTable.position: category.position,
+    });
+
+    final res = await _database.query(
+      CategoryTable.tableName,
+      columns: [
+        CategoryTable.position,
+      ],
+      where: "${CategoryTable.title}='${category.title}'",
+    );
+
+    if (res.length == 1) {
+      _model.categories.insert(0, category);
+    }
+  }
+
+  //// Misc ////////////////////////////////////////////////////////////////////////////////////////
+
+  static int formatAmountToInsert(double amount) {
+    return (amount * 100).toInt();
+  }
+
+  static String formatDateString(DateTime datetime) {
+    final today = DateTime.now();
+
+    final bool isToday = datetime.year == today.year &&
+        datetime.month == today.month &&
+        datetime.day == today.day;
+
+    late String dateStr;
+    if (datetime.year == today.year) {
+      dateStr = isToday ? "Today" : DateFormat('MMM dd').format(datetime);
+    } else {
+      dateStr = DateFormat('MMM dd, yyyy').format(datetime);
+    }
+
+    return dateStr;
+  }
+
+  static String formatTotalStr(List<int> list) {
+    return (list.reduce((a, b) => a + b) / 100).toStringAsFixed(2);
+  }
+
   static DatetimeRange getThisWeekRange() {
     final today = DateTime.now();
     final startOffet = today.weekday - 1;
@@ -215,14 +256,6 @@ class MainController extends StateXController {
     final nextYearStart = DateTime(today.year + 1);
 
     return DatetimeRange(thisYearStart, nextYearStart);
-  }
-
-  void deleteExpense(Expense expense) {
-    _database.delete(
-      ExpenseTable.tableName,
-      where: "${ExpenseTable.datetime}='${expense.datetime}'",
-    );
-    _model.deleteExpense(expense);
   }
 
   List<int> getThisWeekDailyTotal() {
@@ -296,174 +329,5 @@ class MainController extends StateXController {
 
   List<Expense> dailyDataAt(int index) {
     return _model.expenseData[index];
-  }
-
-  void updateCategories() {
-    for (final category in _model.categories) {
-      _database.update(
-        CategoryTable.tableName,
-        {CategoryTable.position: category.position},
-        where: "${CategoryTable.title}='${category.title}'",
-      );
-    }
-  }
-
-  Future<void> addCategory(Category category) async {
-    await _database.insert(CategoryTable.tableName, {
-      CategoryTable.title: category.title,
-      CategoryTable.icon: category.icon.icon!.codePoint,
-      CategoryTable.color: category.color.value,
-      CategoryTable.position: category.position,
-    });
-
-    final res = await _database.query(
-      CategoryTable.tableName,
-      columns: [
-        CategoryTable.position,
-      ],
-      where: "${CategoryTable.title}='${category.title}'",
-    );
-
-    if (res.length == 1) {
-      _model.categories.insert(0, category);
-    }
-  }
-}
-
-class _Model {
-  List<List<Expense>> expenseData = [];
-  List<Category> categories = [];
-
-  void addExpense(Expense expense) {
-    // Create a new daily section if none exists
-    if (expenseData.isEmpty) {
-      expenseData.add([expense]);
-      return;
-    }
-
-    for (var i = 0; i < expenseData.length; ++i) {
-      final sectionDate = expenseData[i].first.datetime;
-      final current = expense.datetime;
-
-      // Add to existing day section else
-      // Create a new day section if section does not exist
-      if (current.year == sectionDate.year &&
-          current.month == sectionDate.month &&
-          current.day == sectionDate.day) {
-        expenseData[i].add(expense);
-        break;
-      } else if (i + 1 == expenseData.length) {
-        expenseData.add([expense]);
-        break;
-      }
-    }
-
-    // Sort daily sections
-    expenseData.sort(
-      (a, b) => b.first.datetime.compareTo(a.first.datetime),
-    );
-
-    // Sort entries in daily sections
-    for (final data in expenseData) {
-      data.sort((a, b) => b.datetime.compareTo(a.datetime));
-    }
-  }
-
-  void editExpense({
-    required Expense oldExpense,
-    required Expense newExpense,
-  }) {
-    // ORDER MATTERS!!!
-    addExpense(newExpense);
-    expenseData[findDailySectionWith(oldExpense.datetime)].remove(oldExpense);
-    expenseData.removeWhere((element) => element.isEmpty);
-  }
-
-  void deleteExpense(Expense expense) {
-    final index = findDailySectionWith(expense.datetime);
-    expenseData[index].remove(expense);
-
-    if (expenseData[index].isEmpty) {
-      expenseData.removeAt(index);
-    }
-  }
-
-  int findDailySectionWith(DateTime datetime) {
-    return expenseData.indexWhere(
-      (dailySection) {
-        final sectionDate = dailySection.first.datetime;
-        final expenseDate = datetime;
-
-        return sectionDate.year == expenseDate.year &&
-            sectionDate.month == expenseDate.month &&
-            sectionDate.day == expenseDate.day;
-      },
-    );
-  }
-}
-
-class Expense {
-  const Expense({
-    required this.datetime,
-    required this.amount,
-    required this.title,
-    required this.category,
-  });
-
-  final DateTime datetime;
-  final int amount;
-  final String title;
-  final String category;
-
-  Expense copyWith({
-    DateTime? datetime,
-    int? amount,
-    String? title,
-    String? category,
-  }) {
-    datetime ??= this.datetime;
-    amount ??= this.amount;
-    title ??= this.title;
-    category ??= this.category;
-
-    return Expense(
-      datetime: datetime,
-      amount: amount,
-      title: title,
-      category: category,
-    );
-  }
-}
-
-class Category {
-  const Category({
-    required this.title,
-    required this.color,
-    required this.icon,
-    required this.position,
-  });
-
-  final String title;
-  final Color color;
-  final Icon icon;
-  final int position;
-
-  Category copyWith({
-    String? title,
-    Color? color,
-    Icon? icon,
-    int? position,
-  }) {
-    title ??= this.title;
-    color ??= this.color;
-    icon ??= this.icon;
-    position ??= this.position;
-
-    return Category(
-      title: title,
-      color: color,
-      icon: icon,
-      position: position,
-    );
   }
 }

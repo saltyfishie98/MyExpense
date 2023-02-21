@@ -5,9 +5,9 @@ import "package:desktop_window/desktop_window.dart";
 import "package:dynamic_color/dynamic_color.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
-import "package:my_expense/controller.dart";
+import 'package:my_expense/data/controller.dart';
 import "package:my_expense/pages/home.dart";
-import "package:my_expense/tables.dart";
+import 'package:my_expense/data/tables.dart';
 import "package:my_expense/theme.dart";
 
 import "package:sqflite_common_ffi/sqflite_ffi.dart";

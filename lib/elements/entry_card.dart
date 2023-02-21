@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_expense/controller.dart';
+import 'package:my_expense/data/controller.dart';
 import 'package:my_expense/theme.dart';
 
 Widget createEntryCard(

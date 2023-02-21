@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:my_expense/controller.dart';
+import 'package:my_expense/data/controller.dart';
 import 'package:my_expense/extensions.dart';
 import 'package:my_expense/theme.dart';
 

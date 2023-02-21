@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_expense/controller.dart';
+import 'package:my_expense/data/controller.dart';
 import 'package:state_extended/state_extended.dart';
 
 class CategoryEditPage extends StatefulWidget {

@@ -4,7 +4,7 @@ import 'package:my_expense/elements/entry_card.dart';
 import 'package:my_expense/elements/expense_overview.dart';
 import 'package:my_expense/pages/settings.dart';
 import 'package:state_extended/state_extended.dart';
-import 'package:my_expense/controller.dart';
+import 'package:my_expense/data/controller.dart';
 import 'package:my_expense/pages/expense_entry.dart';
 import 'package:my_expense/theme.dart';
 import 'package:my_expense/elements/radio_option.dart';

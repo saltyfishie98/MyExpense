@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:my_expense/controller.dart';
+import 'package:my_expense/data/controller.dart';
 import 'package:state_extended/state_extended.dart';
 import 'package:tuple/tuple.dart';
 
