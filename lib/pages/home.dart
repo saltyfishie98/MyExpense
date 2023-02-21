@@ -74,7 +74,7 @@ class _HomePageState extends StateX<HomePage> {
         Expanded(
           child: _radioOption(
             context,
-            title: mode.toShortString().capitalize(),
+            title: mode.toLabelString(),
             value: mode,
             groupValue: currentGraph,
             onChanged: (current) => setState(() {

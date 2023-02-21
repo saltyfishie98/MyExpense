@@ -2,19 +2,14 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:my_expense/controller.dart';
+import 'package:my_expense/extensions.dart';
 import 'package:my_expense/theme.dart';
 
 enum ExpenseOverviewType { week, month, year }
 
 extension ParseToString on ExpenseOverviewType {
-  String toShortString() {
-    return toString().split('.').last;
-  }
-}
-
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+  String toLabelString() {
+    return toString().split('.').last.capitalize();
   }
 }
 
