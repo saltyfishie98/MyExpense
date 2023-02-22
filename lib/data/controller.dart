@@ -105,7 +105,7 @@ class MainController extends StateXController {
         ExpenseTable.datetime: newExpense.datetime.toString(),
         ExpenseTable.amount: newExpense.amount,
         ExpenseTable.title: newExpense.title,
-        ExpenseTable.category: newExpense.category,
+        ExpenseTable.category: newExpense.category.title,
       },
       where: "${ExpenseTable.datetime}='${oldExpense.datetime}'",
     );
@@ -143,7 +143,13 @@ class MainController extends StateXController {
     for (final category in _model.categories) {
       _database.update(
         CategoryTable.tableName,
-        {CategoryTable.position: category.position},
+        {
+          CategoryTable.title: category.title,
+          CategoryTable.icon: category.icon.icon!.codePoint,
+          CategoryTable.iconFamily: category.icon.icon!.fontFamily,
+          CategoryTable.color: category.color.value,
+          CategoryTable.position: category.position,
+        },
         where: "${CategoryTable.title}='${category.title}'",
       );
     }
@@ -159,6 +165,7 @@ class MainController extends StateXController {
     await _database.insert(CategoryTable.tableName, {
       CategoryTable.title: category.title,
       CategoryTable.icon: category.icon.icon!.codePoint,
+      CategoryTable.iconFamily: category.icon.icon!.fontFamily,
       CategoryTable.color: category.color.value,
       CategoryTable.position: category.position,
     });

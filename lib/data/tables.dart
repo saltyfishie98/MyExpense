@@ -13,6 +13,7 @@ class ExpenseTable {
 class CategoryTable {
   static String title = "title";
   static String icon = "icon";
+  static String iconFamily = "iconFamily";
   static String color = "color";
   static String position = "position";
   static String tableName = "Categories";

@@ -87,7 +87,7 @@ class Expense {
 
   static Future<List<Map<String, Object?>>> rawQuery(Database database) =>
       database.rawQuery("""
-        SELECT ${ExpenseTable.datetime}, ${ExpenseTable.amount}, l.${ExpenseTable.title}, ${ExpenseTable.category}, ${CategoryTable.icon}, ${CategoryTable.color}, ${CategoryTable.position}
+        SELECT ${ExpenseTable.datetime}, ${ExpenseTable.amount}, l.${ExpenseTable.title}, ${ExpenseTable.category}, ${CategoryTable.icon}, ${CategoryTable.iconFamily}, ${CategoryTable.color}, ${CategoryTable.position}
         FROM ${ExpenseTable.tableName} l
         INNER JOIN ${CategoryTable.tableName} r ON 
         	r.${CategoryTable.title}=l.${ExpenseTable.category} 
@@ -103,6 +103,10 @@ class Expense {
     final iconData =
         int.parse(iconCode == null ? "0xe16a" : iconCode.toString());
     final icon = Icon(IconData(iconData));
+
+    final iconFamily = data[CategoryTable.icon];
+    final iconFamilyData =
+        iconFamily == null ? "MaterialIcons" : iconFamily.toString();
 
     final colorCode = data[CategoryTable.color];
     final colorData =
@@ -120,6 +124,7 @@ class Expense {
         color: color,
         icon: icon,
         position: position,
+        iconFamily: iconFamilyData,
       ),
     );
   }
@@ -149,12 +154,14 @@ class Category {
     required this.title,
     required this.color,
     required this.icon,
+    required this.iconFamily,
     required this.position,
   });
 
   final String title;
   final Color color;
   final Icon icon;
+  final String iconFamily;
   final int position;
 
   static Future<List<Map<String, Object?>>> rawQuery(Database database) =>
@@ -167,17 +174,21 @@ class Category {
     final colorData = data[CategoryTable.color]?.toString();
     final iconData = data[CategoryTable.icon]?.toString();
     final posData = data[CategoryTable.position]?.toString();
+    final iconFamilyData = data[CategoryTable.iconFamily]?.toString();
 
     final position = posData == null ? -1 : int.parse(posData.toString());
     final colorCode =
         colorData == null ? Colors.red.value : int.parse(colorData);
     final iconCode = iconData == null ? 0xe16a : int.parse(iconData.toString());
+    final iconFamily =
+        iconFamilyData == null ? "MaterialIcons" : iconFamilyData.toString();
 
     return Category(
       title: data[CategoryTable.title].toString(),
       color: Color(colorCode),
       icon: Icon(IconData(iconCode, fontFamily: 'MaterialIcons')),
       position: position,
+      iconFamily: iconFamily,
     );
   }
 
@@ -185,18 +196,21 @@ class Category {
     String? title,
     Color? color,
     Icon? icon,
+    String? iconFamily,
     int? position,
   }) {
     title ??= this.title;
     color ??= this.color;
     icon ??= this.icon;
     position ??= this.position;
+    iconFamily ??= this.iconFamily;
 
     return Category(
       title: title,
       color: color,
       icon: icon,
       position: position,
+      iconFamily: iconFamily,
     );
   }
 

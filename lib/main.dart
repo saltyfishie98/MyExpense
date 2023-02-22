@@ -24,7 +24,7 @@ void main() async {
 
   final db = await openDatabase(
     // TODO: Rename on release
-    "expenses-t1.sqlite",
+    "expenses-t2.sqlite",
     version: 1,
     onUpgrade: (db, oldVersion, newVersion) {
       log("database upgraded!");
@@ -35,35 +35,48 @@ void main() async {
       db.execute("""
         CREATE TABLE ${CategoryTable.tableName}(
           ${CategoryTable.title} TEXT PRIMARY KEY, 
-          ${CategoryTable.icon} INT, 
-          ${CategoryTable.color} INT,
-          ${CategoryTable.position} INT
+          ${CategoryTable.icon} INT NOT NULL, 
+          ${CategoryTable.iconFamily} TEXT NOT NULL, 
+          ${CategoryTable.color} INT NOT NULL,
+          ${CategoryTable.position} INT NOT NULL
         );
       """);
       db.execute("""
         CREATE TABLE ${ExpenseTable.tableName}(
           ${ExpenseTable.datetime} TEXT PRIMARY KEY,
-          ${ExpenseTable.amount} INT,
-          ${ExpenseTable.title} TEXT,
+          ${ExpenseTable.amount} INT NOT NULL,
+          ${ExpenseTable.title} TEXT NOT NULL,
           ${ExpenseTable.category} TEXT NOT NULL,
           FOREIGN KEY (category) REFERENCES Categories(${CategoryTable.title})
         );
       """);
       db.insert(CategoryTable.tableName, {
         CategoryTable.title: "Food",
-        "position": 0,
+        CategoryTable.icon: Icons.close.codePoint,
+        CategoryTable.iconFamily: Icons.close.fontFamily,
+        CategoryTable.color: Colors.red.value,
+        CategoryTable.position: 0,
       });
       db.insert(CategoryTable.tableName, {
         CategoryTable.title: "Shopping",
-        "position": 1,
+        CategoryTable.icon: Icons.close.codePoint,
+        CategoryTable.iconFamily: Icons.close.fontFamily,
+        CategoryTable.color: Colors.red.value,
+        CategoryTable.position: 1,
       });
       db.insert(CategoryTable.tableName, {
-        CategoryTable.title: "Bicycle",
-        "position": 2,
+        CategoryTable.title: "Sports",
+        CategoryTable.icon: Icons.close.codePoint,
+        CategoryTable.iconFamily: Icons.close.fontFamily,
+        CategoryTable.color: Colors.red.value,
+        CategoryTable.position: 2,
       });
       db.insert(CategoryTable.tableName, {
         CategoryTable.title: "Studies",
-        "position": 3,
+        CategoryTable.icon: Icons.close.codePoint,
+        CategoryTable.iconFamily: Icons.close.fontFamily,
+        CategoryTable.color: Colors.red.value,
+        CategoryTable.position: 3,
       });
     },
   );
