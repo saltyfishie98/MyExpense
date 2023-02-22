@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_expense/data/controller.dart';
 import 'package:my_expense/theme.dart';
 import 'package:state_extended/state_extended.dart';
@@ -13,6 +14,7 @@ class CategoryEditPage extends StatefulWidget {
 class _CategoryEditPageState extends StateX<CategoryEditPage> {
   List<Category> _categories = [];
   late MainController ctrlr;
+  late FToast fToast;
 
   _CategoryEditPageState() : super(MainController()) {
     ctrlr = controller as MainController;
@@ -21,6 +23,9 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
   @override
   void initState() {
     super.initState();
+
+    fToast = FToast();
+    fToast.init(context);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final data = await ctrlr.getCategories();
@@ -34,25 +39,19 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final themeExt = theme.extension<ElementThemes>();
+
     var titleInputCtrl = TextEditingController();
 
-    void toEditCategoryPopup() {
-      Widget editPanel = AlertDialog(
-        content: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: TextField(
-            controller: titleInputCtrl,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: "New Category",
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              ctrlr.addCategory(
+    void toAddCategoryPopup() {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CategoryEditPopup(
+            controller: ctrlr,
+            editController: titleInputCtrl,
+            onCancel: () => Navigator.pop(context),
+            onOk: () async {
+              await ctrlr.addCategory(
                 Category(
                   title: titleInputCtrl.text,
                   color: Colors.blue,
@@ -60,24 +59,13 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
                   position: -1,
                 ),
               );
+
               setState(() {
                 _categories = ctrlr.categories;
+                Navigator.pop(context);
               });
-              Navigator.pop(context);
             },
-            child: const Text("Ok"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-        ],
-      );
-
-      showDialog(
-        context: context,
-        builder: (context) {
-          return editPanel;
+          );
         },
       );
     }
@@ -93,7 +81,7 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
           ),
         ),
         IconButton(
-          onPressed: toEditCategoryPopup,
+          onPressed: toAddCategoryPopup,
           padding: EdgeInsets.zero,
           iconSize: 35,
           icon: const Icon(Icons.add),
@@ -103,43 +91,24 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
 
     final categoryList = Expanded(
       child: ReorderableListView.builder(
+        buildDefaultDragHandles: false,
+        itemCount: _categories.length,
         itemBuilder: (context, index) {
           final category = _categories[index];
-          return InkWell(
+          return _CategoryListItem(
             key: Key(category.title),
-            customBorder: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                themeExt?.cardRadius ?? 10,
-              ),
-            ),
-            onLongPress: () {},
-            child: ListTile(
-              minVerticalPadding: 17,
-              leading: category.icon,
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    category.title,
-                  ),
-                  Container(
-                    width: 15,
-                    height: 15,
-                    decoration: BoxDecoration(
-                      color: category.color,
-                      shape: BoxShape.circle,
-                    ),
-                  )
-                ],
-              ),
-              trailing: ReorderableDragStartListener(
-                index: index,
-                child: const Icon(Icons.drag_handle_rounded),
-              ),
-            ),
+            category: category,
+            index: index,
+            theme: theme,
+            onLongPress: (category) {
+              ctrlr.deleteCategory(category).then((_) {
+                setState(() {
+                  _categories = ctrlr.categories;
+                });
+              });
+            },
           );
         },
-        itemCount: _categories.length,
         onReorder: (int oldIndex, int newIndex) {
           setState(
             () {
@@ -153,7 +122,6 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
             },
           );
         },
-        buildDefaultDragHandles: false,
       ),
     );
 
@@ -161,6 +129,27 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
       padding: const EdgeInsets.only(bottom: 50),
       child: FloatingActionButton(
         onPressed: () {
+          if (_categories.isEmpty) {
+            final toast = Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 12.0,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(25.0),
+                color: themeExt?.accent,
+              ),
+              child: const Text("Categories can't be empty!"),
+            );
+
+            fToast.showToast(
+              child: toast,
+              toastDuration: const Duration(seconds: 2),
+              gravity: ToastGravity.CENTER,
+            );
+            return;
+          }
+
           for (var i = 0; i < _categories.length; ++i) {
             _categories[i] = _categories[i].copyWith(position: i);
           }
@@ -191,6 +180,120 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CategoryListItem extends StatelessWidget {
+  const _CategoryListItem({
+    super.key,
+    required this.category,
+    required this.index,
+    required this.theme,
+    required this.onLongPress,
+  });
+
+  final Category category;
+  final ThemeData theme;
+  final Function(Category) onLongPress;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final themeExt = theme.extension<ElementThemes>();
+
+    return InkWell(
+      customBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(
+          themeExt?.cardRadius ?? 10,
+        ),
+      ),
+      onLongPress: () {
+        onLongPress(category);
+      },
+      child: ListTile(
+        minVerticalPadding: 17,
+        leading: category.icon,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              category.title,
+            ),
+            Container(
+              width: 15,
+              height: 15,
+              decoration: BoxDecoration(
+                color: category.color,
+                shape: BoxShape.circle,
+              ),
+            )
+          ],
+        ),
+        trailing: ReorderableDragStartListener(
+          index: index,
+          child: const Icon(Icons.drag_handle_rounded),
+        ),
+      ),
+    );
+  }
+}
+
+class CategoryEditPopup extends StatefulWidget {
+  const CategoryEditPopup({
+    super.key,
+    required this.controller,
+    required this.onOk,
+    required this.editController,
+    required this.onCancel,
+  });
+
+  final MainController controller;
+  final Function() onOk;
+  final Function() onCancel;
+  final TextEditingController editController;
+
+  @override
+  State<CategoryEditPopup> createState() => _CategoryEditPopupState();
+}
+
+class _CategoryEditPopupState extends State<CategoryEditPopup> {
+  var addCategoryTextFieldFocus = FocusNode();
+
+  @override
+  void dispose() {
+    super.dispose();
+    addCategoryTextFieldFocus.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var titleInputCtrl = widget.editController;
+    FocusScope.of(context).requestFocus(addCategoryTextFieldFocus);
+
+    return AlertDialog(
+      content: Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: TextField(
+          focusNode: addCategoryTextFieldFocus,
+          controller: titleInputCtrl,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: "New Category",
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: widget.onCancel,
+          child: const Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: widget.onOk,
+          child: const Text("Ok"),
+        ),
+      ],
     );
   }
 }

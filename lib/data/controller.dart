@@ -191,6 +191,22 @@ class MainController extends StateXController {
     }
   }
 
+  Future<void> deleteCategory(Category category) async {
+    await _database.delete(
+      CategoryTable.tableName,
+      where: "${CategoryTable.title}='${category.title}'",
+    );
+
+    final res = await _database.query(CategoryTable.tableName,
+        columns: [CategoryTable.color],
+        where: "${CategoryTable.title}='${category.title}'");
+
+    if (res.isEmpty) {
+      _model.categories
+          .removeWhere((element) => element.title == category.title);
+    }
+  }
+
   //// Misc ////////////////////////////////////////////////////////////////////////////////////////
 
   static int formatAmountToInsert(double amount) {
