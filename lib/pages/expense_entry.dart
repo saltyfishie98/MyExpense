@@ -36,7 +36,7 @@ class ExpenseEntry extends StatefulWidget {
 class _ExpenseEntryState extends StateX<ExpenseEntry> {
   //// States ///////////////////////////////////////////////
 
-  String _selectedCategoryStr = "";
+  Category? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
   bool _titleFilled = true;
   bool _amountFilled = true;
@@ -48,14 +48,14 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
 
   _ExpenseEntryState() : super(MainController()) {
     _ctrlr = controller as MainController;
-    _selectedCategoryStr = _ctrlr.categories.first.title;
+    _selectedCategory = _ctrlr.categories.first;
   }
 
   @override
   void initState() {
     super.initState();
     if (widget.expense != null) {
-      _selectedCategoryStr = widget.expense!.category;
+      _selectedCategory = widget.expense!.category;
       _selectedDate = widget.expense!.datetime;
       titleInputCtrl = TextEditingController(text: widget.expense!.title);
       amountInputCtrl = TextEditingController(
@@ -104,7 +104,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
           amount: MainController.formatAmountToInsert(
               double.parse(amountInputCtrl.text)),
           title: titleInputCtrl.text,
-          category: _selectedCategoryStr,
+          category: _selectedCategory!,
         ),
       )
           .then(
@@ -126,7 +126,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
           amount: MainController.formatAmountToInsert(
             double.parse(amountInputCtrl.text),
           ),
-          category: _selectedCategoryStr,
+          category: _selectedCategory!,
           datetime: _selectedDate,
         ),
       )
@@ -205,20 +205,20 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
           child: Container(
             margin: const EdgeInsets.only(left: 5, right: 0),
             height: entryCellHeight,
-            child: DropdownButton<String>(
-              value: _selectedCategoryStr,
+            child: DropdownButton<Category>(
+              value: _selectedCategory!,
               underline: const SizedBox(),
               isExpanded: true,
               icon: const Icon(Icons.arrow_drop_down_circle_outlined),
-              onChanged: (String? value) {
+              onChanged: (value) {
                 setState(() {
-                  _selectedCategoryStr = value!;
+                  _selectedCategory = value!;
                 });
               },
-              items: _ctrlr.categories.map<DropdownMenuItem<String>>(
+              items: _ctrlr.categories.map<DropdownMenuItem<Category>>(
                 (Category value) {
-                  return DropdownMenuItem<String>(
-                    value: value.title,
+                  return DropdownMenuItem<Category>(
+                    value: value,
                     child: Align(
                       alignment: FractionalOffset.bottomCenter,
                       child: Text(

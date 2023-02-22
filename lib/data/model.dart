@@ -83,13 +83,50 @@ class Expense {
   final DateTime datetime;
   final int amount;
   final String title;
-  final String category;
+  final Category category;
+
+  static Future<List<Map<String, Object?>>> rawQuery(Database database) =>
+      database.rawQuery("""
+        SELECT ${ExpenseTable.datetime}, ${ExpenseTable.amount}, l.${ExpenseTable.title}, ${ExpenseTable.category}, ${CategoryTable.icon}, ${CategoryTable.color}, ${CategoryTable.position}
+        FROM ${ExpenseTable.tableName} l
+        INNER JOIN ${CategoryTable.tableName} r ON 
+        	r.${CategoryTable.title}=l.${ExpenseTable.category} 
+      """);
+
+  static Expense fromDatabase(Map<String, Object?> data) {
+    final datetime = DateTime.parse(data[ExpenseTable.datetime].toString());
+    final amount = int.parse(data[ExpenseTable.amount].toString());
+    final title = data[ExpenseTable.title].toString();
+    final category = data[ExpenseTable.category].toString();
+
+    final iconCode = data[CategoryTable.icon];
+    final iconData =
+        int.parse(iconCode == null ? "0xe16a" : iconCode.toString());
+    final icon = Icon(IconData(iconData));
+
+    final colorCode = data[CategoryTable.color].toString();
+    final color = Color(int.parse(colorCode));
+
+    final position = int.parse(data[CategoryTable.position].toString());
+
+    return Expense(
+      datetime: datetime,
+      amount: amount,
+      title: title,
+      category: Category(
+        title: category,
+        color: color,
+        icon: icon,
+        position: position,
+      ),
+    );
+  }
 
   Expense copyWith({
     DateTime? datetime,
     int? amount,
     String? title,
-    String? category,
+    Category? category,
   }) {
     datetime ??= this.datetime;
     amount ??= this.amount;
@@ -118,24 +155,11 @@ class Category {
   final Icon icon;
   final int position;
 
-  Category copyWith({
-    String? title,
-    Color? color,
-    Icon? icon,
-    int? position,
-  }) {
-    title ??= this.title;
-    color ??= this.color;
-    icon ??= this.icon;
-    position ??= this.position;
-
-    return Category(
-      title: title,
-      color: color,
-      icon: icon,
-      position: position,
-    );
-  }
+  static Future<List<Map<String, Object?>>> rawQuery(Database database) =>
+      database.query(
+        CategoryTable.tableName,
+        orderBy: CategoryTable.position,
+      );
 
   static Category fromDatabase(Map<String, Object?> data) {
     final colorData = data[CategoryTable.color]?.toString();
@@ -151,6 +175,25 @@ class Category {
       title: data[CategoryTable.title].toString(),
       color: Color(colorCode),
       icon: Icon(IconData(iconCode, fontFamily: 'MaterialIcons')),
+      position: position,
+    );
+  }
+
+  Category copyWith({
+    String? title,
+    Color? color,
+    Icon? icon,
+    int? position,
+  }) {
+    title ??= this.title;
+    color ??= this.color;
+    icon ??= this.icon;
+    position ??= this.position;
+
+    return Category(
+      title: title,
+      color: color,
+      icon: icon,
       position: position,
     );
   }

@@ -26,27 +26,15 @@ class MainController extends StateXController {
     _model = _Model();
 
     final res = await Future.wait([
-      _database.query(ExpenseTable.tableName),
-      _database.query(
-        CategoryTable.tableName,
-        orderBy: CategoryTable.position,
-      ),
+      Expense.rawQuery(_database),
+      Category.rawQuery(_database),
     ]);
 
     final dbExpense = res.first;
     final dbCategories = res.last;
 
     for (final data in dbExpense) {
-      _model.addExpense(
-        Expense(
-          datetime: DateTime.parse(
-            data[ExpenseTable.datetime].toString(),
-          ),
-          amount: data[ExpenseTable.amount] as int,
-          title: data[ExpenseTable.title].toString(),
-          category: data[ExpenseTable.category].toString(),
-        ),
-      );
+      _model.addExpense(Expense.fromDatabase(data));
     }
 
     for (final data in dbCategories) {
@@ -92,27 +80,18 @@ class MainController extends StateXController {
       ExpenseTable.datetime: expense.datetime.toString(),
       ExpenseTable.amount: expense.amount,
       ExpenseTable.title: expense.title,
-      ExpenseTable.category: expense.category,
+      ExpenseTable.category: expense.category.title,
     });
 
     /// Check the inserted expense exist in the database
-    final insert = await _database.query(
+    final res = await _database.query(
       ExpenseTable.tableName,
       where: "${ExpenseTable.datetime} = '${expense.datetime}'",
     );
 
-    /// Copy the database's expense into the model
-    for (final data in insert) {
-      _model.addExpense(
-        Expense(
-          datetime: DateTime.parse(
-            data[ExpenseTable.datetime].toString(),
-          ),
-          amount: data[ExpenseTable.amount] as int,
-          title: data[ExpenseTable.title].toString(),
-          category: data[ExpenseTable.category].toString(),
-        ),
-      );
+    /// Copy expense into the model
+    if (res.length == 1) {
+      _model.addExpense(expense);
     }
   }
 

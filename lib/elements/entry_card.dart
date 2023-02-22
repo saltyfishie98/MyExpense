@@ -46,7 +46,7 @@ Widget createEntryCard(
                       style: const TextStyle(fontSize: 17),
                     ),
                     Text(
-                      expense.category,
+                      expense.category.title,
                       style: const TextStyle(fontSize: 10),
                     ),
                   ],
