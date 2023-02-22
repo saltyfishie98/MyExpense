@@ -31,6 +31,7 @@ Widget createEntryCard(
                         offset: const Offset(1, 2))
                   ],
                 ),
+                child: expense.category.icon,
               ),
 
               //// Title ///////////////////////////////////////////////////////////////////
