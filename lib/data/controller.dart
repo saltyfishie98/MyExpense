@@ -50,24 +50,7 @@ class MainController extends StateXController {
     }
 
     for (final data in dbCategories) {
-      final colorData = data[CategoryTable.color]?.toString();
-      final iconData = data[CategoryTable.icon]?.toString();
-      final posData = data[CategoryTable.position]?.toString();
-
-      final position = posData == null ? -1 : int.parse(posData.toString());
-      final colorCode =
-          colorData == null ? Colors.red.value : int.parse(colorData);
-      final iconCode =
-          iconData == null ? 0xe237 : int.parse(iconData.toString());
-
-      _model.categories.add(
-        Category(
-          title: data[CategoryTable.title].toString(),
-          color: Color(colorCode),
-          icon: Icon(IconData(iconCode, fontFamily: 'MaterialIcons')),
-          position: position,
-        ),
-      );
+      _model.categories.add(Category.fromDatabase(data));
     }
   }
 
@@ -164,7 +147,20 @@ class MainController extends StateXController {
 
   //// Categories //////////////////////////////////////////////////////////////////////////////////
 
-  void updateCategories() {
+  Future<List<Category>> getCategories() async {
+    final categories = await _database.query(
+      CategoryTable.tableName,
+      orderBy: CategoryTable.position,
+    );
+
+    final out = categories.map((data) => Category.fromDatabase(data)).toList();
+
+    return Future(() => out);
+  }
+
+  void updateCategories(List<Category> categories) {
+    _model.categories = categories;
+
     for (final category in _model.categories) {
       _database.update(
         CategoryTable.tableName,

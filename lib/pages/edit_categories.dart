@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_expense/data/controller.dart';
+import 'package:my_expense/theme.dart';
 import 'package:state_extended/state_extended.dart';
 
 class CategoryEditPage extends StatefulWidget {
@@ -20,143 +21,174 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
   @override
   void initState() {
     super.initState();
-    _categories = ctrlr.categories;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final data = await ctrlr.getCategories();
+      setState(() {
+        _categories = data;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    var categoryTiles = <Widget>[];
+    final theme = Theme.of(context);
+    final themeExt = theme.extension<ElementThemes>();
     var titleInputCtrl = TextEditingController();
 
-    for (var category in _categories) {
-      categoryTiles.add(
-        ListTile(
-          minVerticalPadding: 17,
-          onLongPress: () {},
-          leading: category.icon,
-          title: Text(
-            category.title,
-          ),
-          trailing: Container(
-            margin: const EdgeInsets.only(right: 20),
-            width: 15,
-            height: 15,
-            decoration: BoxDecoration(
-              color: category.color,
-              shape: BoxShape.circle,
-            ),
-          ),
-          key: Key(category.title),
-        ),
-      );
-    }
-
     void toEditCategoryPopup() {
-      Widget editPanel = Center(
-        child: Column(
-          children: [
-            TextField(
-              controller: titleInputCtrl,
+      Widget editPanel = AlertDialog(
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: TextField(
+            controller: titleInputCtrl,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: "New Category",
             ),
-            FloatingActionButton(
-              onPressed: () {
-                final test = Category(
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              ctrlr.addCategory(
+                Category(
                   title: titleInputCtrl.text,
                   color: Colors.blue,
                   icon: const Icon(Icons.check),
-                  position: 0,
-                );
-
-                ctrlr.addCategory(test).then((value) {
-                  setState(() {
-                    _categories = ctrlr.categories;
-                  });
-                  Navigator.pop(context);
-                });
-              },
-            ),
-          ],
-        ),
+                  position: -1,
+                ),
+              );
+              setState(() {
+                _categories = ctrlr.categories;
+              });
+              Navigator.pop(context);
+            },
+            child: const Text("Ok"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+        ],
       );
 
-      showModalBottomSheet(
+      showDialog(
         context: context,
         builder: (context) {
           return editPanel;
         },
       );
-
-      // const test = Category(
-      //   title: "Test",
-      //   color: Colors.blue,
-      //   icon: Icon(Icons.check),
-      //   position: 0,
-      // );
-
-      // await ctrlr.addCategory(test);
-
-      // setState(() {
-      //   _categories = ctrlr.categories;
-      // });
     }
 
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Categories:",
-                      style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: toEditCategoryPopup,
-                      padding: EdgeInsets.zero,
-                      iconSize: 35,
-                      icon: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: double.infinity, height: 5),
-                Expanded(
-                  child: ReorderableListView(
-                    children: categoryTiles,
-                    onReorder: (int oldIndex, int newIndex) {
-                      setState(
-                        () {
-                          final item = _categories.removeAt(oldIndex);
-                          _categories.insert(newIndex, item);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 50),
-              child: FloatingActionButton(
-                onPressed: () {
-                  for (var i = 0; i < _categories.length; ++i) {
-                    _categories[i] = _categories[i].copyWith(position: i);
-                  }
-                  ctrlr.updateCategories();
-                  Navigator.pop(context);
-                },
-                shape: const CircleBorder(),
-                child: const Icon(Icons.check),
+    final header = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          "Categories:",
+          style: TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        IconButton(
+          onPressed: toEditCategoryPopup,
+          padding: EdgeInsets.zero,
+          iconSize: 35,
+          icon: const Icon(Icons.add),
+        ),
+      ],
+    );
+
+    final categoryList = Expanded(
+      child: ReorderableListView.builder(
+        itemBuilder: (context, index) {
+          final category = _categories[index];
+          return InkWell(
+            key: Key(category.title),
+            customBorder: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                themeExt?.cardRadius ?? 10,
               ),
-            )
-          ],
+            ),
+            onLongPress: () {},
+            child: ListTile(
+              minVerticalPadding: 17,
+              leading: category.icon,
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    category.title,
+                  ),
+                  Container(
+                    width: 15,
+                    height: 15,
+                    decoration: BoxDecoration(
+                      color: category.color,
+                      shape: BoxShape.circle,
+                    ),
+                  )
+                ],
+              ),
+              trailing: ReorderableDragStartListener(
+                index: index,
+                child: const Icon(Icons.drag_handle_rounded),
+              ),
+            ),
+          );
+        },
+        itemCount: _categories.length,
+        onReorder: (int oldIndex, int newIndex) {
+          setState(
+            () {
+              final item = _categories.removeAt(oldIndex);
+
+              if (oldIndex > newIndex) {
+                _categories.insert(newIndex, item);
+              } else {
+                _categories.insert(newIndex - 1, item);
+              }
+            },
+          );
+        },
+        buildDefaultDragHandles: false,
+      ),
+    );
+
+    final closeBtn = Padding(
+      padding: const EdgeInsets.only(bottom: 50),
+      child: FloatingActionButton(
+        onPressed: () {
+          for (var i = 0; i < _categories.length; ++i) {
+            _categories[i] = _categories[i].copyWith(position: i);
+          }
+          ctrlr.updateCategories(_categories);
+          Navigator.pop(context);
+        },
+        shape: const CircleBorder(),
+        child: const Icon(Icons.check),
+      ),
+    );
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Column(
+                children: [
+                  header,
+                  const SizedBox(width: double.infinity, height: 5),
+                  categoryList,
+                ],
+              ),
+              closeBtn,
+            ],
+          ),
         ),
       ),
     );

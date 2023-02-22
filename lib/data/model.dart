@@ -136,6 +136,24 @@ class Category {
       position: position,
     );
   }
+
+  static Category fromDatabase(Map<String, Object?> data) {
+    final colorData = data[CategoryTable.color]?.toString();
+    final iconData = data[CategoryTable.icon]?.toString();
+    final posData = data[CategoryTable.position]?.toString();
+
+    final position = posData == null ? -1 : int.parse(posData.toString());
+    final colorCode =
+        colorData == null ? Colors.red.value : int.parse(colorData);
+    final iconCode = iconData == null ? 0xe16a : int.parse(iconData.toString());
+
+    return Category(
+      title: data[CategoryTable.title].toString(),
+      color: Color(colorCode),
+      icon: Icon(IconData(iconCode, fontFamily: 'MaterialIcons')),
+      position: position,
+    );
+  }
 }
 
 class DatetimeRange {
