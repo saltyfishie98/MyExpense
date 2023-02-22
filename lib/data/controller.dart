@@ -170,7 +170,13 @@ class MainController extends StateXController {
     }
   }
 
-  Future<void> addCategory(Category category) async {
+  Future<bool> addCategory(Category category) async {
+    if (_model.categories
+            .indexWhere((element) => element.title == category.title) !=
+        -1) {
+      return false;
+    }
+
     await _database.insert(CategoryTable.tableName, {
       CategoryTable.title: category.title,
       CategoryTable.icon: category.icon.icon!.codePoint,
@@ -189,6 +195,8 @@ class MainController extends StateXController {
     if (res.length == 1) {
       _model.categories.insert(0, category);
     }
+
+    return true;
   }
 
   Future<void> deleteCategory(Category category) async {

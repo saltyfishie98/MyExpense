@@ -51,7 +51,7 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
             editController: titleInputCtrl,
             onCancel: () => Navigator.pop(context),
             onOk: () async {
-              await ctrlr.addCategory(
+              final success = await ctrlr.addCategory(
                 Category(
                   title: titleInputCtrl.text,
                   color: Colors.blue,
@@ -60,10 +60,16 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
                 ),
               );
 
+              if (!success) {
+                return Future(() => false);
+              }
+
               setState(() {
                 _categories = ctrlr.categories;
                 Navigator.pop(context);
               });
+
+              return Future(() => true);
             },
           );
         },
@@ -249,7 +255,7 @@ class CategoryEditPopup extends StatefulWidget {
   });
 
   final MainController controller;
-  final Function() onOk;
+  final Future<bool> Function() onOk;
   final Function() onCancel;
   final TextEditingController editController;
 
@@ -259,11 +265,28 @@ class CategoryEditPopup extends StatefulWidget {
 
 class _CategoryEditPopupState extends State<CategoryEditPopup> {
   var addCategoryTextFieldFocus = FocusNode();
+  var okDisable = true;
+  var categoryError = false;
 
   @override
   void dispose() {
     super.dispose();
     addCategoryTextFieldFocus.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.editController.addListener(() {
+      setState(() {
+        if (widget.editController.text.isEmpty) {
+          okDisable = true;
+        } else {
+          okDisable = false;
+        }
+        categoryError = false;
+      });
+    });
   }
 
   @override
@@ -278,9 +301,10 @@ class _CategoryEditPopupState extends State<CategoryEditPopup> {
           focusNode: addCategoryTextFieldFocus,
           controller: titleInputCtrl,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
             hintText: "New Category",
+            errorText: categoryError ? "Category already exist!" : null,
           ),
         ),
       ),
@@ -290,7 +314,16 @@ class _CategoryEditPopupState extends State<CategoryEditPopup> {
           child: const Text("Cancel"),
         ),
         TextButton(
-          onPressed: widget.onOk,
+          onPressed: okDisable
+              ? null
+              : () async {
+                  final success = await widget.onOk();
+                  if (!success) {
+                    setState(() {
+                      categoryError = true;
+                    });
+                  }
+                },
           child: const Text("Ok"),
         ),
       ],
