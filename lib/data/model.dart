@@ -104,8 +104,10 @@ class Expense {
         int.parse(iconCode == null ? "0xe16a" : iconCode.toString());
     final icon = Icon(IconData(iconData));
 
-    final colorCode = data[CategoryTable.color].toString();
-    final color = Color(int.parse(colorCode));
+    final colorCode = data[CategoryTable.color];
+    final colorData =
+        colorCode == null ? Colors.red.value : int.parse(colorCode.toString());
+    final color = Color(colorData);
 
     final position = int.parse(data[CategoryTable.position].toString());
 
@@ -197,6 +199,15 @@ class Category {
       position: position,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Category && title == other.title;
+  }
+
+  @override
+  int get hashCode => Object.hash(title, 42);
 }
 
 class DatetimeRange {
