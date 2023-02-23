@@ -127,7 +127,7 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
                 context: context,
                 builder: (context) {
                   return createModifyPrompt(context, height: 200, options: [
-                    promptButton("Delete", onTap: () async {
+                    promptButton("Delete", context, onTap: () async {
                       Navigator.pop(context);
 
                       final deleteSuccess =

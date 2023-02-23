@@ -18,7 +18,8 @@ Widget createModifyPrompt(
   );
 }
 
-Widget promptButton(String label, {required Function() onTap}) {
+Widget promptButton(String label, BuildContext context,
+    {required Function() onTap}) {
   return InkWell(
     onTap: onTap,
     child: SizedBox(

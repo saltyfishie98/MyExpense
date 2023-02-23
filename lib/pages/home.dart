@@ -233,11 +233,11 @@ class _HomePageState extends StateX<HomePage> {
         context: context,
         builder: (BuildContext context) {
           return createModifyPrompt(context, options: [
-            promptButton("Edit", onTap: () {
+            promptButton("Edit", context, onTap: () {
               Navigator.pop(context);
               toEditExpense(expense);
             }),
-            promptButton("Delete", onTap: () {
+            promptButton("Delete", context, onTap: () {
               Navigator.pop(context);
               toDeleteExpense(expense);
             }),
