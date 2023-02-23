@@ -194,13 +194,18 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          padding: const EdgeInsets.symmetric(
+            vertical: 10,
+          ),
           child: Stack(
             alignment: Alignment.bottomCenter,
             children: [
               Column(
                 children: [
-                  header,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: header,
+                  ),
                   const SizedBox(width: double.infinity, height: 5),
                   categoryList,
                 ],
@@ -244,28 +249,26 @@ class _CategoryListItem extends StatelessWidget {
       child: ListTile(
         minVerticalPadding: 17,
         leading: category.icon,
-        title: Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  category.title,
-                  maxLines: 1,
-                  softWrap: false,
-                  style: const TextStyle(overflow: TextOverflow.fade),
-                ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                category.title,
+                maxLines: 1,
+                softWrap: false,
+                style: const TextStyle(overflow: TextOverflow.fade),
               ),
-              Container(
-                width: 15,
-                height: 15,
-                decoration: BoxDecoration(
-                  color: category.color,
-                  shape: BoxShape.circle,
-                ),
-              )
-            ],
-          ),
+            ),
+            Container(
+              width: 15,
+              height: 15,
+              decoration: BoxDecoration(
+                color: category.color,
+                shape: BoxShape.circle,
+              ),
+            )
+          ],
         ),
         trailing: ReorderableDragStartListener(
           index: index,

@@ -35,9 +35,6 @@ class AppTheme {
             iconColor: MaterialStateProperty.all(
               lightScheme.onBackground,
             ),
-            backgroundColor: MaterialStateProperty.all(
-              lightScheme.surfaceVariant,
-            ),
           ),
         ),
         extensions: <ThemeExtension<dynamic>>[
@@ -62,9 +59,6 @@ class AppTheme {
           style: ButtonStyle(
             iconColor: MaterialStateProperty.all(
               darkScheme.onBackground,
-            ),
-            backgroundColor: MaterialStateProperty.all(
-              darkScheme.surfaceVariant,
             ),
           ),
         ),
