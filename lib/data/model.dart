@@ -99,14 +99,14 @@ class Expense {
     final title = data[ExpenseTable.title].toString();
     final category = data[ExpenseTable.category].toString();
 
+    final iconFamily = data[CategoryTable.iconFamily];
+    final iconFamilyData =
+        iconFamily == null ? "MaterialIcons" : iconFamily.toString();
+
     final iconCode = data[CategoryTable.icon];
     final iconData =
         int.parse(iconCode == null ? "0xe16a" : iconCode.toString());
-    final icon = Icon(IconData(iconData));
-
-    final iconFamily = data[CategoryTable.icon];
-    final iconFamilyData =
-        iconFamily == null ? "MaterialIcons" : iconFamily.toString();
+    final icon = Icon(IconData(iconData, fontFamily: iconFamilyData));
 
     final colorCode = data[CategoryTable.color];
     final colorData =
@@ -124,7 +124,6 @@ class Expense {
         color: color,
         icon: icon,
         position: position,
-        iconFamily: iconFamilyData,
       ),
     );
   }
@@ -154,14 +153,12 @@ class Category {
     required this.title,
     required this.color,
     required this.icon,
-    required this.iconFamily,
     required this.position,
   });
 
   final String title;
   final Color color;
   final Icon icon;
-  final String iconFamily;
   final int position;
 
   static Future<List<Map<String, Object?>>> rawQuery(Database database) =>
@@ -186,9 +183,8 @@ class Category {
     return Category(
       title: data[CategoryTable.title].toString(),
       color: Color(colorCode),
-      icon: Icon(IconData(iconCode, fontFamily: 'MaterialIcons')),
+      icon: Icon(IconData(iconCode, fontFamily: iconFamily)),
       position: position,
-      iconFamily: iconFamily,
     );
   }
 
@@ -203,14 +199,12 @@ class Category {
     color ??= this.color;
     icon ??= this.icon;
     position ??= this.position;
-    iconFamily ??= this.iconFamily;
 
     return Category(
       title: title,
       color: color,
       icon: icon,
       position: position,
-      iconFamily: iconFamily,
     );
   }
 

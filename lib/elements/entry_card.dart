@@ -34,9 +34,10 @@ Widget createEntryCard(
                       borderRadius: BorderRadius.circular(15),
                       boxShadow: [
                         BoxShadow(
-                            color: elmtThemes?.shadow ?? Colors.black,
-                            blurRadius: 5.0,
-                            offset: const Offset(1, 2))
+                          color: elmtThemes?.shadow ?? Colors.black,
+                          blurRadius: 5.0,
+                          offset: const Offset(1, 2),
+                        )
                       ],
                     ),
                     child: expense.category.icon,

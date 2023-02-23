@@ -71,7 +71,6 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
                   title: titleInputCtrl.text,
                   color: Colors.blue,
                   icon: const Icon(Icons.check),
-                  iconFamily: Icons.check.fontFamily!,
                   position: -1,
                 ),
               );
