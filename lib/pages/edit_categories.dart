@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_expense/data/controller.dart';
 import 'package:my_expense/elements/modify_prompt.dart';
@@ -321,12 +322,15 @@ class _CategoryEditPopupState extends State<CategoryEditPopup> {
         categoryError = false;
       });
     });
+
+    SchedulerBinding.instance.addPostFrameCallback((Duration _) {
+      FocusScope.of(context).requestFocus(addCategoryTextFieldFocus);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     var titleInputCtrl = widget.editController;
-    FocusScope.of(context).requestFocus(addCategoryTextFieldFocus);
 
     return AlertDialog(
       content: Padding(

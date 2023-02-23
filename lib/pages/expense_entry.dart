@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:my_expense/data/controller.dart';
@@ -43,6 +44,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
   TextEditingController titleInputCtrl = TextEditingController();
   TextEditingController amountInputCtrl = TextEditingController(text: "0.00");
   late MainController _ctrlr;
+  FocusNode entryFocusNode = FocusNode();
 
   //// Implementations //////////////////////////////////////
 
@@ -52,8 +54,15 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    entryFocusNode.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
+
     if (widget.expense != null) {
       _selectedCategory = widget.expense!.category;
       _selectedDate = widget.expense!.datetime;
@@ -62,6 +71,10 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
         text: (widget.expense!.amount / 100).toStringAsFixed(2),
       );
     }
+
+    SchedulerBinding.instance.addPostFrameCallback((Duration _) {
+      FocusScope.of(context).requestFocus(entryFocusNode);
+    });
   }
 
   @override
@@ -177,6 +190,11 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                 contentPadding: EdgeInsets.only(bottom: 5),
               ),
               style: TextStyle(fontSize: entryFontSize),
+              focusNode: entryFocusNode,
+              onTapOutside: (_) =>
+                  FocusScope.of(context).requestFocus(FocusNode()),
+              onEditingComplete: () =>
+                  FocusScope.of(context).requestFocus(FocusNode()),
             ),
           ),
         ),
