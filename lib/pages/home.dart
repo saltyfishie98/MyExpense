@@ -199,8 +199,11 @@ class _HomePageState extends StateX<HomePage> {
 
   Widget dailyEntryView(ThemeData theme) {
     void toEditExpense(Expense expense) {
-      final page = MaterialPageRoute(
-        builder: (context) => ExpenseEntry(
+      final page = PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 300),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: _transition,
+        pageBuilder: (context, animation, secondaryAnimation) => ExpenseEntry(
           "Edit\nExpense:",
           onNewExpense: null,
           onEditExpense: () {
@@ -280,8 +283,11 @@ class _HomePageState extends StateX<HomePage> {
 
   Widget addEntryButton() {
     void toAddExpense() async {
-      final page = MaterialPageRoute(
-        builder: (context) => ExpenseEntry(
+      final page = PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 300),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: _transition,
+        pageBuilder: (context, animation, secondaryAnimation) => ExpenseEntry(
           "Add\nExpense:",
           onNewExpense: () {
             setState(() {
@@ -307,4 +313,17 @@ class _HomePageState extends StateX<HomePage> {
       ),
     );
   }
+}
+
+Widget _transition(context, animation, secondaryAnimation, child) {
+  const begin = Offset(0.0, 1.0);
+  const end = Offset.zero;
+  final tween =
+      Tween(begin: begin, end: end).chain(CurveTween(curve: Curves.ease));
+  final offsetAnimation = animation.drive(tween);
+
+  return SlideTransition(
+    position: offsetAnimation,
+    child: child,
+  );
 }
