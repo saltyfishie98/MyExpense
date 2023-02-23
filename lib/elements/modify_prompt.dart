@@ -23,15 +23,13 @@ Widget promptButton(String label, BuildContext context,
   return InkWell(
     onTap: onTap,
     child: SizedBox(
-      child: Expanded(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 25,
-              ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 25,
             ),
           ),
         ),
