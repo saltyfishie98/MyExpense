@@ -185,7 +185,14 @@ class MainController extends StateXController {
     return true;
   }
 
-  Future<void> deleteCategory(Category category) async {
+  Future<bool> deleteCategory(Category category) async {
+    // don't delete if saved expense has the specified category
+    for (final section in _model.expenseData) {
+      if (section.indexWhere((element) => element.category == category) != -1) {
+        return Future(() => false);
+      }
+    }
+
     await _database.delete(
       CategoryTable.tableName,
       where: "${CategoryTable.title}='${category.title}'",
@@ -199,6 +206,8 @@ class MainController extends StateXController {
       _model.categories
           .removeWhere((element) => element.title == category.title);
     }
+
+    return Future(() => true);
   }
 
   //// Misc ////////////////////////////////////////////////////////////////////////////////////////

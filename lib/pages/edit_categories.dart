@@ -40,6 +40,20 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
     final theme = Theme.of(context);
     final themeExt = theme.extension<ElementThemes>();
 
+    Widget createToast(String text) {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24.0,
+          vertical: 12.0,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25.0),
+          color: themeExt?.accent,
+        ),
+        child: Text(text),
+      );
+    }
+
     var titleInputCtrl = TextEditingController();
 
     void toAddCategoryPopup() {
@@ -107,11 +121,20 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
             category: category,
             index: index,
             theme: theme,
-            onLongPress: (category) {
-              ctrlr.deleteCategory(category).then((_) {
-                setState(() {
-                  _categories = ctrlr.categories;
-                });
+            onLongPress: (category) async {
+              final success = await ctrlr.deleteCategory(category);
+
+              if (!success) {
+                fToast.showToast(
+                  child: createToast("Can't delete, category in use!"),
+                  toastDuration: const Duration(seconds: 2),
+                  gravity: ToastGravity.CENTER,
+                );
+                return;
+              }
+
+              setState(() {
+                _categories = ctrlr.categories;
               });
             },
           );
@@ -137,20 +160,8 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
       child: FloatingActionButton(
         onPressed: () {
           if (_categories.isEmpty) {
-            final toast = Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 12.0,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25.0),
-                color: themeExt?.accent,
-              ),
-              child: const Text("Categories can't be empty!"),
-            );
-
             fToast.showToast(
-              child: toast,
+              child: createToast("Categories can't be empty!"),
               toastDuration: const Duration(seconds: 2),
               gravity: ToastGravity.CENTER,
             );
