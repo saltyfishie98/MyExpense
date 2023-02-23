@@ -179,7 +179,7 @@ class MainController extends StateXController {
     );
 
     if (res.length == 1) {
-      _model.categories.insert(0, category);
+      _model.categories.insert(_model.categories.length, category);
     }
 
     return true;
