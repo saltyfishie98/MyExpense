@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:my_expense/elements/entry_card.dart';
 import 'package:my_expense/elements/expense_overview.dart';
+import 'package:my_expense/elements/modify_prompt.dart';
 import 'package:my_expense/pages/settings.dart';
 import 'package:state_extended/state_extended.dart';
 import 'package:my_expense/data/controller.dart';
@@ -227,48 +228,20 @@ class _HomePageState extends StateX<HomePage> {
       });
     }
 
-    void toModifyPrompt(Expense expense) {
-      Widget button(String label, {required Function() onTap}) {
-        return InkWell(
-          onTap: onTap,
-          child: SizedBox(
-            child: Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20.0),
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 25,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-
+    void showModifyPrompt(Expense expense) {
       showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
-          return SizedBox(
-            width: double.infinity,
-            height: 300,
-            child: Column(
-              children: [
-                const SizedBox(width: double.infinity, height: 30),
-                button("Edit", onTap: () {
-                  Navigator.pop(context);
-                  toEditExpense(expense);
-                }),
-                button("Delete", onTap: () {
-                  Navigator.pop(context);
-                  toDeleteExpense(expense);
-                }),
-              ],
-            ),
-          );
+          return createModifyPrompt(context, options: [
+            promptButton("Edit", onTap: () {
+              Navigator.pop(context);
+              toEditExpense(expense);
+            }),
+            promptButton("Delete", onTap: () {
+              Navigator.pop(context);
+              toDeleteExpense(expense);
+            }),
+          ]);
         },
       );
     }
@@ -291,7 +264,7 @@ class _HomePageState extends StateX<HomePage> {
               (context, i) => createEntryCard(
                 context,
                 expense: data[i],
-                onLongPress: toModifyPrompt,
+                onLongPress: showModifyPrompt,
               ),
               childCount: data.length,
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:my_expense/data/controller.dart';
+import 'package:my_expense/elements/modify_prompt.dart';
 import 'package:my_expense/theme.dart';
 import 'package:state_extended/state_extended.dart';
 
@@ -122,20 +123,32 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
             index: index,
             theme: theme,
             onLongPress: (category) async {
-              final success = await ctrlr.deleteCategory(category);
+              showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return createModifyPrompt(context, height: 200, options: [
+                    promptButton("Delete", onTap: () async {
+                      Navigator.pop(context);
 
-              if (!success) {
-                fToast.showToast(
-                  child: createToast("Can't delete, category in use!"),
-                  toastDuration: const Duration(seconds: 2),
-                  gravity: ToastGravity.CENTER,
-                );
-                return;
-              }
+                      final deleteSuccess =
+                          await ctrlr.deleteCategory(category);
 
-              setState(() {
-                _categories = ctrlr.categories;
-              });
+                      if (!deleteSuccess) {
+                        fToast.showToast(
+                          child: createToast("Can't delete, category in use!"),
+                          toastDuration: const Duration(seconds: 2),
+                          gravity: ToastGravity.CENTER,
+                        );
+                        return;
+                      }
+
+                      setState(() {
+                        _categories = ctrlr.categories;
+                      });
+                    })
+                  ]);
+                },
+              );
             },
           );
         },
