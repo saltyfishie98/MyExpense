@@ -221,21 +221,28 @@ class _CategoryListItem extends StatelessWidget {
       child: ListTile(
         minVerticalPadding: 17,
         leading: category.icon,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              category.title,
-            ),
-            Container(
-              width: 15,
-              height: 15,
-              decoration: BoxDecoration(
-                color: category.color,
-                shape: BoxShape.circle,
+        title: Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  category.title,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: const TextStyle(overflow: TextOverflow.fade),
+                ),
               ),
-            )
-          ],
+              Container(
+                width: 15,
+                height: 15,
+                decoration: BoxDecoration(
+                  color: category.color,
+                  shape: BoxShape.circle,
+                ),
+              )
+            ],
+          ),
         ),
         trailing: ReorderableDragStartListener(
           index: index,

@@ -223,9 +223,12 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
                       alignment: FractionalOffset.bottomCenter,
                       child: Text(
                         value.title,
+                        softWrap: false,
+                        maxLines: 1,
                         style: TextStyle(
                           fontSize: entryFontSize,
                           fontWeight: FontWeight.normal,
+                          overflow: TextOverflow.fade,
                         ),
                       ),
                     ),

@@ -19,7 +19,8 @@ void main() async {
   if (Platform.isWindows || Platform.isLinux) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
-    await DesktopWindow.setWindowSize(const Size(375, 375 * (18 / 9)));
+    await DesktopWindow.setWindowSize(const Size(360, 800));
+    // await DesktopWindow.setWindowSize(const Size(375, 375 * (18 / 9)));
   }
 
   final db = await openDatabase(
