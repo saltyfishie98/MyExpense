@@ -34,15 +34,15 @@ class ExpenseOverview extends StatelessWidget {
     switch (overviewType) {
       case ExpenseOverviewType.week:
         final dailyTotal = controller.getThisWeekDailyTotal();
-        return MainController.formatTotalStr(dailyTotal);
+        return MainController.formatTotalAmountForView(dailyTotal);
 
       case ExpenseOverviewType.month:
         final weeklyTotal = controller.getThisMonthWeeklyTotal();
-        return MainController.formatTotalStr(weeklyTotal);
+        return MainController.formatTotalAmountForView(weeklyTotal);
 
       case ExpenseOverviewType.year:
         final monthlyTotal = controller.getThisYearMonthlyTotal();
-        return MainController.formatTotalStr(monthlyTotal);
+        return MainController.formatTotalAmountForView(monthlyTotal);
     }
   }
 

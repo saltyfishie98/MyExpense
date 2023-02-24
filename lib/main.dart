@@ -23,6 +23,10 @@ void main() async {
     // await DesktopWindow.setWindowSize(const Size(375, 375 * (18 / 9)));
   }
 
+  if (Platform.isAndroid) {
+    MainController.initHomeWidget();
+  }
+
   final db = await openDatabase(
     // TODO: Rename on release
     "expenses-t2.sqlite",

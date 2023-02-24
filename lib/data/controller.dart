@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:my_expense/data/tables.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:state_extended/state_extended.dart';
+import 'package:home_widget/home_widget.dart';
 
 part 'model.dart';
 
@@ -210,6 +211,32 @@ class MainController extends StateXController {
     return Future(() => true);
   }
 
+  //// Home Widget /////////////////////////////////////////////////////////////////////////////////
+
+  static void initHomeWidget() {
+    // required for ios only
+    HomeWidget.setAppGroupId('MY_EXPENSE_IOS');
+  }
+
+  Future<void> updateHomeWidget() async {
+    HomeWidget.updateWidget(
+      name: 'MyExpenseWidgetProvider',
+      iOSName: 'MyExpenseWidget',
+    );
+  }
+
+  Future<void> sendHomeWidget(String totalExpense) async {
+    await HomeWidget.saveWidgetData(
+      "amount",
+      "\$$totalExpense",
+    );
+    updateHomeWidget();
+  }
+
+  void didHomeWidgetChange(Function(Uri? uri) callback) {
+    HomeWidget.widgetClicked.listen(callback);
+  }
+
   //// Misc ////////////////////////////////////////////////////////////////////////////////////////
 
   static int formatAmountToInsert(double amount) {
@@ -233,7 +260,7 @@ class MainController extends StateXController {
     return dateStr;
   }
 
-  static String formatTotalStr(List<int> list) {
+  static String formatTotalAmountForView(List<int> list) {
     return (list.reduce((a, b) => a + b) / 100).toStringAsFixed(2);
   }
 

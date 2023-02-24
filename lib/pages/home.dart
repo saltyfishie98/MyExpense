@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:my_expense/elements/entry_card.dart';
 import 'package:my_expense/elements/expense_overview.dart';
 import 'package:my_expense/elements/modify_prompt.dart';
@@ -34,9 +35,44 @@ class _HomePageState extends StateX<HomePage> {
     );
   }
 
+  Widget createExpenseEntryPage() {
+    return ExpenseEntry(
+      "Add\nExpense:",
+      onNewExpense: () {
+        setState(() {
+          chartView = ExpenseOverview(
+            controller: ctrlr,
+            overviewType: currentGraph,
+          );
+        });
+      },
+      onEditExpense: null,
+    );
+  }
+
+  void widgetChangeCallback(Uri? uri) {
+    if (uri != null) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return createExpenseEntryPage();
+      }));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    HomeWidget.initiallyLaunchedFromHomeWidget().then(widgetChangeCallback);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    ctrlr.sendHomeWidget(
+      MainController.formatTotalAmountForView(
+        ctrlr.getThisMonthWeeklyTotal(),
+      ),
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -287,18 +323,8 @@ class _HomePageState extends StateX<HomePage> {
         transitionDuration: const Duration(milliseconds: 300),
         reverseTransitionDuration: const Duration(milliseconds: 300),
         transitionsBuilder: _transition,
-        pageBuilder: (context, animation, secondaryAnimation) => ExpenseEntry(
-          "Add\nExpense:",
-          onNewExpense: () {
-            setState(() {
-              chartView = ExpenseOverview(
-                controller: ctrlr,
-                overviewType: currentGraph,
-              );
-            });
-          },
-          onEditExpense: null,
-        ),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            createExpenseEntryPage(),
       );
 
       Navigator.push(context, page);
