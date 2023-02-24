@@ -1,5 +1,5 @@
 {
-    "autoHide.autoHideSideBar": false,
+    "autoHide.autoHideSideBar": true,
     "sqltools.useNodeRuntime": true,
     "sqltools.connections": [
         {
