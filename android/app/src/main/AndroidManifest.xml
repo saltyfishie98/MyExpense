@@ -1,9 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.my_expense">
     <application
-        android:label="my_expense"
+        android:label="Just Expenses"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:roundIcon="@mipmap/ic_main_round"
+        android:icon="@mipmap/ic_main">
         <activity
             android:name=".MainActivity"
             android:exported="true"

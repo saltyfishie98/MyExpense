@@ -117,7 +117,7 @@ class _HomePageState extends StateX<HomePage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
-          "MyExpense",
+          "JustExpense",
           style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.bold,
