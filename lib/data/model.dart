@@ -85,35 +85,49 @@ class Expense {
   final String title;
   final Category category;
 
+  static String datetimeCol = "datetime";
+  static String amountCol = "amount";
+  static String titleCol = "title";
+  static String categoryCol = "category";
+  static String tableNameCol = "Expenses";
+
   static Future<List<Map<String, Object?>>> rawQuery(Database database) =>
+      // Need update if database skema changes!
       database.rawQuery("""
-        SELECT ${ExpenseTable.datetime}, ${ExpenseTable.amount}, l.${ExpenseTable.title}, ${ExpenseTable.category}, ${CategoryTable.icon}, ${CategoryTable.iconFamily}, ${CategoryTable.color}, ${CategoryTable.position}
-        FROM ${ExpenseTable.tableName} l
-        INNER JOIN ${CategoryTable.tableName} r ON 
-        	r.${CategoryTable.title}=l.${ExpenseTable.category} 
+        SELECT $datetimeCol, $amountCol, l.$titleCol, $categoryCol, ${Category.iconCol}, ${Category.iconFamilyCol}, ${Category.colorCol}, ${Category.positionCol}, ${Category.iconPackageCol}
+        FROM $tableNameCol l
+        INNER JOIN ${Category.tableNameCol} r ON 
+        	r.${Category.titleCol}=l.$categoryCol 
       """);
 
   static Expense fromDatabase(Map<String, Object?> data) {
-    final datetime = DateTime.parse(data[ExpenseTable.datetime].toString());
-    final amount = int.parse(data[ExpenseTable.amount].toString());
-    final title = data[ExpenseTable.title].toString();
-    final category = data[ExpenseTable.category].toString();
+    // Need update if database skema changes!
 
-    final iconFamily = data[CategoryTable.iconFamily];
+    final datetime = DateTime.parse(data[datetimeCol].toString());
+    final amount = int.parse(data[amountCol].toString());
+    final title = data[titleCol].toString();
+    final category = data[categoryCol].toString();
+
+    final iconFamily = data[Category.iconFamilyCol];
     final iconFamilyData =
         iconFamily == null ? "MaterialIcons" : iconFamily.toString();
 
-    final iconCode = data[CategoryTable.icon];
+    final iconPackage = data[Category.iconPackageCol].toString();
+    final iconCode = data[Category.iconCol];
     final iconData =
         int.parse(iconCode == null ? "0xe16a" : iconCode.toString());
-    final icon = Icon(IconData(iconData, fontFamily: iconFamilyData));
+    final icon = Icon(IconData(
+      iconData,
+      fontFamily: iconFamilyData,
+      fontPackage: iconPackage,
+    ));
 
-    final colorCode = data[CategoryTable.color];
+    final colorCode = data[Category.colorCol];
     final colorData =
         colorCode == null ? Colors.red.value : int.parse(colorCode.toString());
     final color = Color(colorData);
 
-    final position = int.parse(data[CategoryTable.position].toString());
+    final position = int.parse(data[Category.positionCol].toString());
 
     return Expense(
       datetime: datetime,
@@ -126,6 +140,16 @@ class Expense {
         position: position,
       ),
     );
+  }
+
+  Map<String, Object?> toDatabaseObject() {
+    // Need update if database skema changes!
+    return {
+      datetimeCol: datetime.toString(),
+      amountCol: amount,
+      titleCol: title,
+      categoryCol: category.title,
+    };
   }
 
   Expense copyWith({
@@ -161,31 +185,56 @@ class Category {
   final Icon icon;
   final int position;
 
+  static String titleCol = "title";
+  static String iconCol = "icon";
+  static String iconFamilyCol = "iconFamily";
+  static String iconPackageCol = "iconPackage";
+  static String colorCol = "color";
+  static String positionCol = "position";
+  static String tableNameCol = "Categories";
+
   static Future<List<Map<String, Object?>>> rawQuery(Database database) =>
+      // Need update if database skema changes!
       database.query(
-        CategoryTable.tableName,
-        orderBy: CategoryTable.position,
+        Category.tableNameCol,
+        orderBy: Category.positionCol,
       );
 
   static Category fromDatabase(Map<String, Object?> data) {
-    final colorData = data[CategoryTable.color]?.toString();
-    final iconData = data[CategoryTable.icon]?.toString();
-    final posData = data[CategoryTable.position]?.toString();
-    final iconFamilyData = data[CategoryTable.iconFamily]?.toString();
-
+    // Need update if database skema changes!
+    final posData = data[Category.positionCol]?.toString();
     final position = posData == null ? -1 : int.parse(posData.toString());
+
+    final colorData = data[Category.colorCol]?.toString();
     final colorCode =
         colorData == null ? Colors.red.value : int.parse(colorData);
+
+    final iconData = data[Category.iconCol]?.toString();
+    final iconFamilyData = data[Category.iconFamilyCol]?.toString();
+    final iconPackage = data[Category.iconPackageCol]?.toString();
     final iconCode = iconData == null ? 0xe16a : int.parse(iconData.toString());
     final iconFamily =
         iconFamilyData == null ? "MaterialIcons" : iconFamilyData.toString();
 
     return Category(
-      title: data[CategoryTable.title].toString(),
+      title: data[Category.titleCol].toString(),
       color: Color(colorCode),
-      icon: Icon(IconData(iconCode, fontFamily: iconFamily)),
+      icon: Icon(
+          IconData(iconCode, fontFamily: iconFamily, fontPackage: iconPackage)),
       position: position,
     );
+  }
+
+  Map<String, Object?> toDatabaseObject() {
+    // Need update if database skema changes!
+    return {
+      Category.titleCol: title,
+      Category.iconCol: icon.icon?.codePoint.toString() ?? Icons.abc.codePoint,
+      Category.iconFamilyCol: icon.icon?.fontFamily ?? "MaterialIcons",
+      Category.iconPackageCol: icon.icon?.fontPackage,
+      Category.colorCol: color.value,
+      Category.positionCol: position,
+    };
   }
 
   Category copyWith({

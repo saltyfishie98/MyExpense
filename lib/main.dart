@@ -5,9 +5,12 @@ import "package:desktop_window/desktop_window.dart";
 import "package:dynamic_color/dynamic_color.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
+import "package:fluttericon/font_awesome_icons.dart";
+import "package:fluttericon/iconic_icons.dart";
+import "package:fluttericon/maki_icons.dart";
+import "package:fluttericon/typicons_icons.dart";
 import 'package:my_expense/data/controller.dart';
 import "package:my_expense/pages/home.dart";
-import 'package:my_expense/data/tables.dart';
 import "package:my_expense/theme.dart";
 
 import "package:sqflite_common_ffi/sqflite_ffi.dart";
@@ -38,51 +41,60 @@ void main() async {
       log("database created!");
 
       db.execute("""
-        CREATE TABLE ${CategoryTable.tableName}(
-          ${CategoryTable.title} TEXT PRIMARY KEY, 
-          ${CategoryTable.icon} INT NOT NULL, 
-          ${CategoryTable.iconFamily} TEXT NOT NULL, 
-          ${CategoryTable.color} INT NOT NULL,
-          ${CategoryTable.position} INT NOT NULL
+        CREATE TABLE ${Category.tableNameCol}(
+          ${Category.titleCol} TEXT PRIMARY KEY, 
+          ${Category.iconCol} INT NOT NULL, 
+          ${Category.iconFamilyCol} TEXT NOT NULL, 
+          ${Category.iconPackageCol} TEXT, 
+          ${Category.colorCol} INT NOT NULL,
+          ${Category.positionCol} INT NOT NULL
         );
       """);
       db.execute("""
-        CREATE TABLE ${ExpenseTable.tableName}(
-          ${ExpenseTable.datetime} TEXT PRIMARY KEY,
-          ${ExpenseTable.amount} INT NOT NULL,
-          ${ExpenseTable.title} TEXT NOT NULL,
-          ${ExpenseTable.category} TEXT NOT NULL,
-          FOREIGN KEY (category) REFERENCES Categories(${CategoryTable.title})
+        CREATE TABLE ${Expense.tableNameCol}(
+          ${Expense.datetimeCol} TEXT PRIMARY KEY,
+          ${Expense.amountCol} INT NOT NULL,
+          ${Expense.titleCol} TEXT NOT NULL,
+          ${Expense.categoryCol} TEXT NOT NULL,
+          FOREIGN KEY (category) REFERENCES Categories(${Category.titleCol})
         );
       """);
-      db.insert(CategoryTable.tableName, {
-        CategoryTable.title: "Food",
-        CategoryTable.icon: Icons.close.codePoint,
-        CategoryTable.iconFamily: Icons.close.fontFamily,
-        CategoryTable.color: Colors.red.value,
-        CategoryTable.position: 0,
-      });
-      db.insert(CategoryTable.tableName, {
-        CategoryTable.title: "Shopping",
-        CategoryTable.icon: Icons.close.codePoint,
-        CategoryTable.iconFamily: Icons.close.fontFamily,
-        CategoryTable.color: Colors.red.value,
-        CategoryTable.position: 1,
-      });
-      db.insert(CategoryTable.tableName, {
-        CategoryTable.title: "Sports",
-        CategoryTable.icon: Icons.close.codePoint,
-        CategoryTable.iconFamily: Icons.close.fontFamily,
-        CategoryTable.color: Colors.red.value,
-        CategoryTable.position: 2,
-      });
-      db.insert(CategoryTable.tableName, {
-        CategoryTable.title: "Studies",
-        CategoryTable.icon: Icons.close.codePoint,
-        CategoryTable.iconFamily: Icons.close.fontFamily,
-        CategoryTable.color: Colors.red.value,
-        CategoryTable.position: 3,
-      });
+      db.insert(
+        Category.tableNameCol,
+        const Category(
+          title: "Food",
+          color: Colors.red,
+          icon: Icon(FontAwesome.food),
+          position: 0,
+        ).toDatabaseObject(),
+      );
+      db.insert(
+        Category.tableNameCol,
+        const Category(
+          title: "Shopping",
+          color: Colors.red,
+          icon: Icon(Typicons.basket),
+          position: 0,
+        ).toDatabaseObject(),
+      );
+      db.insert(
+        Category.tableNameCol,
+        const Category(
+          title: "Sports",
+          color: Colors.red,
+          icon: Icon(Maki.bicycle),
+          position: 0,
+        ).toDatabaseObject(),
+      );
+      db.insert(
+        Category.tableNameCol,
+        const Category(
+          title: "Studies",
+          color: Colors.red,
+          icon: Icon(Iconic.book_open),
+          position: 0,
+        ).toDatabaseObject(),
+      );
     },
   );
 
