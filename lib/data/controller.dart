@@ -146,15 +146,20 @@ class MainController extends StateXController {
     _model.categories = categories;
 
     for (final category in _model.categories) {
+      final iconData = category.icon.icon!;
+
       _database.update(
         Category.tableNameCol,
-        {
-          Category.titleCol: category.title,
-          Category.iconCol: category.icon.icon!.codePoint,
-          Category.iconFamilyCol: category.icon.icon!.fontFamily,
-          Category.colorCol: category.color.value,
-          Category.positionCol: category.position,
-        },
+        Category(
+          title: category.title,
+          icon: Icon(IconData(
+            iconData.codePoint,
+            fontFamily: iconData.fontFamily,
+            fontPackage: iconData.fontPackage,
+          )),
+          color: category.color,
+          position: category.position,
+        ).toDatabaseObject(),
         where: "${Category.titleCol}='${category.title}'",
       );
     }
