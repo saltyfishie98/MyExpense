@@ -89,14 +89,14 @@ class Expense {
   static String amountCol = "amount";
   static String titleCol = "title";
   static String categoryCol = "category";
-  static String tableNameCol = "Expenses";
+  static String tableName = "Expenses";
 
   static Future<List<Map<String, Object?>>> rawQuery(Database database) =>
       // Need update if database skema changes!
       database.rawQuery("""
         SELECT $datetimeCol, $amountCol, l.$titleCol, $categoryCol, ${Category.iconCol}, ${Category.iconFamilyCol}, ${Category.colorCol}, ${Category.positionCol}, ${Category.iconPackageCol}
-        FROM $tableNameCol l
-        INNER JOIN ${Category.tableNameCol} r ON 
+        FROM $tableName l
+        INNER JOIN ${Category.tableName} r ON 
         	r.${Category.titleCol}=l.$categoryCol 
       """);
 
@@ -191,12 +191,12 @@ class Category {
   static String iconPackageCol = "iconPackage";
   static String colorCol = "color";
   static String positionCol = "position";
-  static String tableNameCol = "Categories";
+  static String tableName = "Categories";
 
   static Future<List<Map<String, Object?>>> rawQuery(Database database) =>
       // Need update if database skema changes!
       database.query(
-        Category.tableNameCol,
+        Category.tableName,
         orderBy: Category.positionCol,
       );
 
@@ -210,11 +210,13 @@ class Category {
         colorData == null ? Colors.red.value : int.parse(colorData);
 
     final iconData = data[Category.iconCol]?.toString();
+    final iconCode = iconData == null ? 0xe16a : int.parse(iconData);
+
     final iconFamilyData = data[Category.iconFamilyCol]?.toString();
-    final iconPackage = data[Category.iconPackageCol]?.toString();
-    final iconCode = iconData == null ? 0xe16a : int.parse(iconData.toString());
     final iconFamily =
         iconFamilyData == null ? "MaterialIcons" : iconFamilyData.toString();
+
+    final iconPackage = data[Category.iconPackageCol]?.toString();
 
     return Category(
       title: data[Category.titleCol].toString(),
@@ -229,7 +231,7 @@ class Category {
     // Need update if database skema changes!
     return {
       Category.titleCol: title,
-      Category.iconCol: icon.icon?.codePoint.toString() ?? Icons.abc.codePoint,
+      Category.iconCol: icon.icon?.codePoint ?? Icons.abc.codePoint,
       Category.iconFamilyCol: icon.icon?.fontFamily ?? "MaterialIcons",
       Category.iconPackageCol: icon.icon?.fontPackage,
       Category.colorCol: color.value,

@@ -54,7 +54,7 @@ class MainController extends StateXController {
     /// As such 2 exactly same datetime would cause an database insertion error.
     while (true) {
       final check = await _database.query(
-        Expense.tableNameCol,
+        Expense.tableName,
         where: "${Expense.datetimeCol} = '${expense.datetime}'",
       );
 
@@ -79,7 +79,7 @@ class MainController extends StateXController {
 
     /// Actualy insert into the database after the above check
     _database.insert(
-      Expense.tableNameCol,
+      Expense.tableName,
       Expense(
         datetime: expense.datetime,
         amount: expense.amount,
@@ -90,7 +90,7 @@ class MainController extends StateXController {
 
     /// Check the inserted expense exist in the database
     final res = await _database.query(
-      Expense.tableNameCol,
+      Expense.tableName,
       where: "${Expense.datetimeCol} = '${expense.datetime}'",
     );
 
@@ -105,7 +105,7 @@ class MainController extends StateXController {
     required Expense newExpense,
   }) async {
     await _database.update(
-      Expense.tableNameCol,
+      Expense.tableName,
       {
         Expense.datetimeCol: newExpense.datetime.toString(),
         Expense.amountCol: newExpense.amount,
@@ -123,7 +123,7 @@ class MainController extends StateXController {
 
   void deleteExpense(Expense expense) {
     _database.delete(
-      Expense.tableNameCol,
+      Expense.tableName,
       where: "${Expense.datetimeCol}='${expense.datetime}'",
     );
     _model.deleteExpense(expense);
@@ -133,7 +133,7 @@ class MainController extends StateXController {
 
   Future<List<Category>> getCategories() async {
     final categories = await _database.query(
-      Category.tableNameCol,
+      Category.tableName,
       orderBy: Category.positionCol,
     );
 
@@ -142,26 +142,20 @@ class MainController extends StateXController {
     return Future(() => out);
   }
 
-  void updateCategories(List<Category> categories) {
+  void commitCategories(List<Category> categories) {
     _model.categories = categories;
 
     for (final category in _model.categories) {
       final iconData = category.icon.icon!;
 
-      _database.update(
-        Category.tableNameCol,
-        Category(
-          title: category.title,
-          icon: Icon(IconData(
-            iconData.codePoint,
-            fontFamily: iconData.fontFamily,
-            fontPackage: iconData.fontPackage,
-          )),
-          color: category.color,
-          position: category.position,
-        ).toDatabaseObject(),
-        where: "${Category.titleCol}='${category.title}'",
-      );
+      // this was done to not sent "null" as string
+      final String? fontPackage =
+          iconData.fontPackage == null ? null : "'${iconData.fontPackage}'";
+
+      _database.execute("""
+      INSERT OR REPLACE INTO ${Category.tableName} (${Category.titleCol}, ${Category.iconCol}, ${Category.iconFamilyCol}, ${Category.iconPackageCol}, ${Category.colorCol}, ${Category.positionCol})
+      VALUES('${category.title}', ${iconData.codePoint}, '${iconData.fontFamily}', $fontPackage, ${category.color.value}, ${category.position} );
+      """);
     }
   }
 
@@ -172,27 +166,7 @@ class MainController extends StateXController {
       return false;
     }
 
-    await _database.insert(
-      Category.tableNameCol,
-      Category(
-        title: category.title,
-        color: category.color,
-        icon: category.icon,
-        position: category.position,
-      ).toDatabaseObject(),
-    );
-
-    final res = await _database.query(
-      Category.tableNameCol,
-      columns: [
-        Category.positionCol,
-      ],
-      where: "${Category.titleCol}='${category.title}'",
-    );
-
-    if (res.length == 1) {
-      _model.categories.insert(_model.categories.length, category);
-    }
+    _model.categories.insert(_model.categories.length, category);
 
     return true;
   }
@@ -206,11 +180,11 @@ class MainController extends StateXController {
     }
 
     await _database.delete(
-      Category.tableNameCol,
+      Category.tableName,
       where: "${Category.titleCol}='${category.title}'",
     );
 
-    final res = await _database.query(Category.tableNameCol,
+    final res = await _database.query(Category.tableName,
         columns: [Category.colorCol],
         where: "${Category.titleCol}='${category.title}'");
 

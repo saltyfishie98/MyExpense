@@ -41,7 +41,7 @@ void main() async {
       log("database created!");
 
       db.execute("""
-        CREATE TABLE ${Category.tableNameCol}(
+        CREATE TABLE ${Category.tableName}(
           ${Category.titleCol} TEXT PRIMARY KEY, 
           ${Category.iconCol} INT NOT NULL, 
           ${Category.iconFamilyCol} TEXT NOT NULL, 
@@ -51,7 +51,7 @@ void main() async {
         );
       """);
       db.execute("""
-        CREATE TABLE ${Expense.tableNameCol}(
+        CREATE TABLE ${Expense.tableName}(
           ${Expense.datetimeCol} TEXT PRIMARY KEY,
           ${Expense.amountCol} INT NOT NULL,
           ${Expense.titleCol} TEXT NOT NULL,
@@ -60,7 +60,7 @@ void main() async {
         );
       """);
       db.insert(
-        Category.tableNameCol,
+        Category.tableName,
         const Category(
           title: "Food",
           color: Colors.red,
@@ -69,7 +69,7 @@ void main() async {
         ).toDatabaseObject(),
       );
       db.insert(
-        Category.tableNameCol,
+        Category.tableName,
         const Category(
           title: "Shopping",
           color: Colors.red,
@@ -78,7 +78,7 @@ void main() async {
         ).toDatabaseObject(),
       );
       db.insert(
-        Category.tableNameCol,
+        Category.tableName,
         const Category(
           title: "Sports",
           color: Colors.red,
@@ -87,7 +87,7 @@ void main() async {
         ).toDatabaseObject(),
       );
       db.insert(
-        Category.tableNameCol,
+        Category.tableName,
         const Category(
           title: "Studies",
           color: Colors.red,

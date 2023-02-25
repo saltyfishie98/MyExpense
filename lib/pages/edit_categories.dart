@@ -184,7 +184,7 @@ class _CategoryEditPageState extends StateX<CategoryEditPage> {
           for (var i = 0; i < _categories.length; ++i) {
             _categories[i] = _categories[i].copyWith(position: i);
           }
-          ctrlr.updateCategories(_categories);
+          ctrlr.commitCategories(_categories);
           Navigator.pop(context);
         },
         shape: const CircleBorder(),
