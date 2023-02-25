@@ -8,8 +8,8 @@ import 'package:tuple/tuple.dart';
 
 typedef EntryRow = Tuple3<String, Widget, double>;
 
-class ExpenseEntry extends StatefulWidget {
-  const ExpenseEntry(
+class ExpenseEntryPage extends StatefulWidget {
+  const ExpenseEntryPage(
     this.label, {
     super.key,
     required this.onNewExpense,
@@ -31,10 +31,10 @@ class ExpenseEntry extends StatefulWidget {
   final int _labelFlexValue = 3;
 
   @override
-  State createState() => _ExpenseEntryState();
+  State createState() => _ExpenseEntryPageState();
 }
 
-class _ExpenseEntryState extends StateX<ExpenseEntry> {
+class _ExpenseEntryPageState extends StateX<ExpenseEntryPage> {
   //// States ///////////////////////////////////////////////
 
   Category? _selectedCategory;
@@ -48,7 +48,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
 
   //// Implementations //////////////////////////////////////
 
-  _ExpenseEntryState() : super(MainController()) {
+  _ExpenseEntryPageState() : super(MainController()) {
     _ctrlr = controller as MainController;
     _selectedCategory = _ctrlr.categories.first;
   }
@@ -81,7 +81,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
   Widget build(BuildContext context) {
     final entryFontSize = widget.labelFontSize - 2;
     final entryCellHeight = widget.labelFontSize + 10;
-    const double entrySpacing = 17;
+    const double entryHeight = 17;
 
     //// Setup /////////////////////////////////////////////////////////////////////////////////////
 
@@ -91,65 +91,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       ));
     });
 
-    //// Helpers ///////////////////////////////////////////////////////////////////////////////////
-
-    bool notValidInputs() {
-      final emptyTitle = titleInputCtrl.text.isEmpty;
-      final emptyAmount = amountInputCtrl.text == "0.00";
-
-      if (emptyTitle || emptyAmount) {
-        setState(() {
-          emptyTitle ? _titleFilled = false : _titleFilled = true;
-          emptyAmount ? _amountFilled = false : _amountFilled = true;
-        });
-        return true;
-      }
-      return false;
-    }
-
-    void addExpenseCallback() {
-      if (notValidInputs()) return;
-
-      _ctrlr
-          .addExpense(
-        Expense(
-          datetime: _selectedDate,
-          amount: MainController.formatAmountToInsert(
-              double.parse(amountInputCtrl.text)),
-          title: titleInputCtrl.text,
-          category: _selectedCategory!,
-        ),
-      )
-          .then(
-        (value) {
-          widget.onNewExpense!();
-          Navigator.pop(context);
-        },
-      );
-    }
-
-    void editExpenseCallback() {
-      if (notValidInputs()) return;
-
-      _ctrlr
-          .editExpense(
-        oldExpense: widget.expense!,
-        newExpense: Expense(
-          title: titleInputCtrl.text,
-          amount: MainController.formatAmountToInsert(
-            double.parse(amountInputCtrl.text),
-          ),
-          category: _selectedCategory!,
-          datetime: _selectedDate,
-        ),
-      )
-          .then(
-        (value) {
-          widget.onEditExpense!();
-          Navigator.pop(context);
-        },
-      );
-    }
+    //// Widget Elements ///////////////////////////////////////////////////////////////////////////
 
     Widget pageTitle = Align(
       alignment: FractionalOffset.topLeft,
@@ -163,32 +105,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       ),
     );
 
-    Widget createEntryElement(
-      String label, {
-      required Widget entryWidget,
-      Widget? trailling,
-    }) {
-      return Row(
-        children: [
-          SizedBox(
-            // adjust label width here if text clips
-            width: 100,
-            child: Align(
-              alignment: FractionalOffset.bottomRight,
-              child: Text(
-                "$label:",
-                maxLines: 1,
-                style: TextStyle(fontSize: widget.labelFontSize),
-              ),
-            ),
-          ),
-          Expanded(flex: widget.entryFlexValue, child: entryWidget),
-          trailling ?? const SizedBox(),
-        ],
-      );
-    }
-
-    Widget titleEntry = createEntryElement(
+    Widget titleEntry = _createEntryElement(
       "Title",
       entryWidget: Container(
         margin: const EdgeInsets.only(left: 5, right: 5),
@@ -214,7 +131,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       ),
     );
 
-    Widget categorySelect = createEntryElement(
+    Widget categorySelect = _createEntryElement(
       "Category",
       entryWidget: Container(
         margin: const EdgeInsets.only(left: 5, right: 0),
@@ -253,34 +170,34 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       ),
     );
 
-    Widget dateSelect = createEntryElement(
+    Widget dateSelect = _createEntryElement(
       "Date",
-      entryWidget: Container(
-        margin: const EdgeInsets.only(left: 5, right: 0),
-        height: entryCellHeight,
-        child: GestureDetector(
-          onTap: () async {
-            Feedback.forTap(context);
-            var pickedDate = await showDatePicker(
-              context: context,
-              initialDate: _selectedDate,
-              firstDate: DateTime(1950),
-              lastDate: DateTime.now(),
-            );
+      entryWidget: InkWell(
+        onTap: () async {
+          Feedback.forTap(context);
+          var pickedDate = await showDatePicker(
+            context: context,
+            initialDate: _selectedDate,
+            firstDate: DateTime(1950),
+            lastDate: DateTime.now(),
+          );
 
-            if (pickedDate == null) {
-              return;
-            }
+          if (pickedDate == null) {
+            return;
+          }
 
-            final now = DateTime.now();
-            if (pickedDate.year == now.year &&
-                pickedDate.month == now.month &&
-                pickedDate.day == now.day) {
-              pickedDate = now;
-            }
+          final now = DateTime.now();
+          if (pickedDate.year == now.year &&
+              pickedDate.month == now.month &&
+              pickedDate.day == now.day) {
+            pickedDate = now;
+          }
 
-            setState(() => _selectedDate = pickedDate!);
-          },
+          setState(() => _selectedDate = pickedDate!);
+        },
+        child: Container(
+          margin: const EdgeInsets.only(left: 5, right: 0),
+          height: entryCellHeight,
           child: Align(
             alignment: FractionalOffset.bottomCenter,
             child: Padding(
@@ -295,7 +212,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       ),
     );
 
-    Widget amountEntry = createEntryElement(
+    Widget amountEntry = _createEntryElement(
       "Amount",
       entryWidget: TextField(
         controller: amountInputCtrl,
@@ -304,6 +221,7 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
         decoration: const InputDecoration(
           isDense: true,
           contentPadding: EdgeInsets.only(bottom: 5),
+          border: InputBorder.none,
         ),
         style: TextStyle(fontSize: entryFontSize + 20),
         inputFormatters: <TextInputFormatter>[
@@ -313,12 +231,16 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
           PriceFormatter(),
         ],
       ),
+      trailling: _entryErrorWidget(
+        !_amountFilled,
+        boxSize: Size(10, entryCellHeight),
+      ),
     );
 
     Widget okButton = FloatingActionButton(
       heroTag: "add-button",
       onPressed:
-          widget.expense == null ? addExpenseCallback : editExpenseCallback,
+          widget.expense == null ? _addExpenseCallback : _editExpenseCallback,
       shape: const CircleBorder(),
       child: const Icon(Icons.check),
     );
@@ -334,68 +256,137 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
 
     //// Widget ////////////////////////////////////////////////////////////////////////////////////
 
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).requestFocus(FocusNode());
-      },
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: 50,
-                right: 50,
-                bottom: 90,
-                top: 70,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  //// Add Expense //////////////////////////////
-                  pageTitle,
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: 50,
+              right: 50,
+              bottom: 90,
+              top: 70,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                //// Add Expense //////////////////////////////
+                pageTitle,
 
-                  Column(
-                    children: [
-                      //
-                      titleEntry,
+                Column(
+                  children: [
+                    //
+                    titleEntry,
+                    const SizedBox(width: double.infinity, height: entryHeight),
 
-                      const SizedBox(
-                        width: double.infinity,
-                        height: entrySpacing,
-                      ),
+                    categorySelect,
+                    const SizedBox(width: double.infinity, height: entryHeight),
 
-                      categorySelect,
+                    dateSelect,
+                    const SizedBox(
+                      width: double.infinity,
+                      height: entryHeight == 0 ? 0 : entryHeight - 10,
+                    ),
 
-                      const SizedBox(
-                        width: double.infinity,
-                        height: entrySpacing,
-                      ),
+                    amountEntry,
+                  ],
+                ),
 
-                      dateSelect,
-
-                      const SizedBox(
-                        width: double.infinity,
-                        height: entrySpacing == 0 ? 0 : entrySpacing - 10,
-                      ),
-
-                      amountEntry,
-                    ],
-                  ),
-
-                  Column(
-                    children: [
-                      okButton,
-                      const SizedBox(width: double.infinity, height: 30),
-                      closeButton,
-                    ],
-                  ),
-                ],
-              ),
+                Column(
+                  children: [
+                    okButton,
+                    const SizedBox(width: double.infinity, height: 30),
+                    closeButton,
+                  ],
+                ),
+              ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _createEntryElement(
+    String label, {
+    required Widget entryWidget,
+    Widget? trailling,
+  }) {
+    return Row(
+      children: [
+        SizedBox(
+          // adjust label width here if text clips
+          width: 100,
+          child: Align(
+            alignment: FractionalOffset.bottomRight,
+            child: Text(
+              "$label:",
+              maxLines: 1,
+              style: TextStyle(fontSize: widget.labelFontSize),
+            ),
+          ),
+        ),
+        Expanded(flex: widget.entryFlexValue, child: entryWidget),
+        trailling ?? const SizedBox(),
+      ],
+    );
+  }
+
+  bool _notValidInputs() {
+    final emptyTitle = titleInputCtrl.text.isEmpty;
+    final emptyAmount = amountInputCtrl.text == "0.00";
+
+    if (emptyTitle || emptyAmount) {
+      setState(() {
+        emptyTitle ? _titleFilled = false : _titleFilled = true;
+        emptyAmount ? _amountFilled = false : _amountFilled = true;
+      });
+      return true;
+    }
+    return false;
+  }
+
+  void _addExpenseCallback() {
+    if (_notValidInputs()) return;
+
+    _ctrlr
+        .addExpense(
+      Expense(
+        datetime: _selectedDate,
+        amount: MainController.formatAmountToInsert(
+            double.parse(amountInputCtrl.text)),
+        title: titleInputCtrl.text,
+        category: _selectedCategory!,
+      ),
+    )
+        .then(
+      (value) {
+        widget.onNewExpense!();
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  void _editExpenseCallback() {
+    if (_notValidInputs()) return;
+
+    _ctrlr
+        .editExpense(
+      oldExpense: widget.expense!,
+      newExpense: Expense(
+        title: titleInputCtrl.text,
+        amount: MainController.formatAmountToInsert(
+          double.parse(amountInputCtrl.text),
+        ),
+        category: _selectedCategory!,
+        datetime: _selectedDate,
+      ),
+    )
+        .then(
+      (value) {
+        widget.onEditExpense!();
+        Navigator.pop(context);
+      },
     );
   }
 }

@@ -215,7 +215,8 @@ class _HomePageState extends StateX<HomePage> {
         transitionDuration: const Duration(milliseconds: 300),
         reverseTransitionDuration: const Duration(milliseconds: 300),
         transitionsBuilder: _transition,
-        pageBuilder: (context, animation, secondaryAnimation) => ExpenseEntry(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            ExpenseEntryPage(
           "Edit\nExpense:",
           onNewExpense: null,
           onEditExpense: () {
@@ -319,7 +320,7 @@ class _HomePageState extends StateX<HomePage> {
   //// Misc ////////////////////////////////////////////////////////////////////////////////////////
 
   Widget createExpenseEntryPage() {
-    return ExpenseEntry(
+    return ExpenseEntryPage(
       "Add\nExpense:",
       onNewExpense: () {
         setState(() {
