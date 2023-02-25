@@ -163,200 +163,156 @@ class _ExpenseEntryState extends StateX<ExpenseEntry> {
       ),
     );
 
-    Widget titleEntry = Row(
-      children: [
-        Expanded(
-          flex: widget.labelFlexValue,
-          child: Align(
-            alignment: FractionalOffset.centerRight,
-            child: Text(
-              "Title:",
-              maxLines: 1,
-              style: TextStyle(fontSize: widget.labelFontSize),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: widget.entryFlexValue,
-          child: Container(
-            margin: const EdgeInsets.only(left: 5, right: 5),
-            height: entryCellHeight,
-            child: TextField(
-              controller: titleInputCtrl,
-              textCapitalization: TextCapitalization.sentences,
-              textAlign: TextAlign.center,
-              decoration: const InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsets.only(bottom: 5),
+    Widget createEntryElement(
+      String label, {
+      required Widget entryWidget,
+      Widget? trailling,
+    }) {
+      return Row(
+        children: [
+          SizedBox(
+            // adjust label width here if text clips
+            width: 100,
+            child: Align(
+              alignment: FractionalOffset.bottomRight,
+              child: Text(
+                "$label:",
+                maxLines: 1,
+                style: TextStyle(fontSize: widget.labelFontSize),
               ),
-              style: TextStyle(fontSize: entryFontSize),
-              focusNode: entryFocusNode,
-              onTapOutside: (_) =>
-                  FocusScope.of(context).requestFocus(FocusNode()),
-              onEditingComplete: () =>
-                  FocusScope.of(context).requestFocus(FocusNode()),
             ),
           ),
+          Expanded(flex: widget.entryFlexValue, child: entryWidget),
+          trailling ?? const SizedBox(),
+        ],
+      );
+    }
+
+    Widget titleEntry = createEntryElement(
+      "Title",
+      entryWidget: Container(
+        margin: const EdgeInsets.only(left: 5, right: 5),
+        height: entryCellHeight,
+        child: TextField(
+          controller: titleInputCtrl,
+          textCapitalization: TextCapitalization.sentences,
+          textAlign: TextAlign.center,
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.only(bottom: 5),
+          ),
+          style: TextStyle(fontSize: entryFontSize),
+          focusNode: entryFocusNode,
+          onTapOutside: (_) => FocusScope.of(context).requestFocus(FocusNode()),
+          onEditingComplete: () =>
+              FocusScope.of(context).requestFocus(FocusNode()),
         ),
-        _entryErrorWidget(
-          !_titleFilled,
-          boxSize: Size(10, entryCellHeight),
-        )
-      ],
+      ),
+      trailling: _entryErrorWidget(
+        !_titleFilled,
+        boxSize: Size(10, entryCellHeight),
+      ),
     );
 
-    Widget categorySelect = Row(
-      children: [
-        Expanded(
-          flex: widget.labelFlexValue,
-          child: Align(
-            alignment: FractionalOffset.centerRight,
-            child: Text(
-              "Category:",
-              maxLines: 1,
-              style: TextStyle(fontSize: widget.labelFontSize),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: widget.entryFlexValue,
-          child: Container(
-            margin: const EdgeInsets.only(left: 5, right: 0),
-            height: entryCellHeight,
-            child: DropdownButton<Category>(
-              value: _selectedCategory!,
-              underline: const SizedBox(),
-              isExpanded: true,
-              icon: const Icon(Icons.arrow_drop_down_circle_outlined),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value!;
-                });
-              },
-              items: _ctrlr.categories.map<DropdownMenuItem<Category>>(
-                (Category value) {
-                  return DropdownMenuItem<Category>(
-                    value: value,
-                    child: Align(
-                      alignment: FractionalOffset.bottomCenter,
-                      child: Text(
-                        value.title,
-                        softWrap: false,
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: entryFontSize,
-                          fontWeight: FontWeight.normal,
-                          overflow: TextOverflow.fade,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ).toList(),
-            ),
-          ),
-        )
-      ],
-    );
-
-    Widget dateSelect = Row(
-      children: [
-        Expanded(
-          flex: widget.labelFlexValue,
-          child: Align(
-            alignment: FractionalOffset.centerRight,
-            child: Text(
-              "Date:",
-              maxLines: 1,
-              style: TextStyle(fontSize: widget.labelFontSize),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: widget.entryFlexValue,
-          child: Container(
-            margin: const EdgeInsets.only(left: 5, right: 0),
-            height: entryCellHeight,
-            child: GestureDetector(
-              onTap: () async {
-                Feedback.forTap(context);
-                var pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: _selectedDate,
-                  firstDate: DateTime(1950),
-                  lastDate: DateTime.now(),
-                );
-
-                if (pickedDate == null) {
-                  return;
-                }
-
-                final now = DateTime.now();
-                if (pickedDate.year == now.year &&
-                    pickedDate.month == now.month &&
-                    pickedDate.day == now.day) {
-                  pickedDate = now;
-                }
-
-                setState(() => _selectedDate = pickedDate!);
-              },
-              child: Align(
-                alignment: FractionalOffset.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 20),
+    Widget categorySelect = createEntryElement(
+      "Category",
+      entryWidget: Container(
+        margin: const EdgeInsets.only(left: 5, right: 0),
+        height: entryCellHeight,
+        child: DropdownButton<Category>(
+          value: _selectedCategory!,
+          underline: const SizedBox(),
+          isExpanded: true,
+          icon: const Icon(Icons.arrow_drop_down_circle_outlined),
+          onChanged: (value) {
+            setState(() {
+              _selectedCategory = value!;
+            });
+          },
+          items: _ctrlr.categories.map<DropdownMenuItem<Category>>(
+            (Category value) {
+              return DropdownMenuItem<Category>(
+                value: value,
+                child: Align(
+                  alignment: FractionalOffset.bottomCenter,
                   child: Text(
-                    DateFormat('MMM dd, yyyy').format(_selectedDate),
-                    style: TextStyle(fontSize: entryFontSize),
+                    value.title,
+                    softWrap: false,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: entryFontSize,
+                      fontWeight: FontWeight.normal,
+                      overflow: TextOverflow.fade,
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
+              );
+            },
+          ).toList(),
         ),
-      ],
+      ),
     );
 
-    Widget amountEntry = Row(
-      children: [
-        Expanded(
-          flex: widget.labelFlexValue,
+    Widget dateSelect = createEntryElement(
+      "Date",
+      entryWidget: Container(
+        margin: const EdgeInsets.only(left: 5, right: 0),
+        height: entryCellHeight,
+        child: GestureDetector(
+          onTap: () async {
+            Feedback.forTap(context);
+            var pickedDate = await showDatePicker(
+              context: context,
+              initialDate: _selectedDate,
+              firstDate: DateTime(1950),
+              lastDate: DateTime.now(),
+            );
+
+            if (pickedDate == null) {
+              return;
+            }
+
+            final now = DateTime.now();
+            if (pickedDate.year == now.year &&
+                pickedDate.month == now.month &&
+                pickedDate.day == now.day) {
+              pickedDate = now;
+            }
+
+            setState(() => _selectedDate = pickedDate!);
+          },
           child: Align(
-            alignment: FractionalOffset.centerRight,
-            child: Text(
-              "Amount:",
-              maxLines: 1,
-              style: TextStyle(fontSize: widget.labelFontSize),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: widget.entryFlexValue,
-          child: Container(
-            margin: const EdgeInsets.only(left: 5, right: 5),
-            height: entryCellHeight + 50,
-            child: TextField(
-              controller: amountInputCtrl,
-              keyboardType: const TextInputType.numberWithOptions(),
-              textAlign: TextAlign.right,
-              decoration: const InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsets.only(bottom: 5),
+            alignment: FractionalOffset.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 20),
+              child: Text(
+                DateFormat('MMM dd, yyyy').format(_selectedDate),
+                style: TextStyle(fontSize: entryFontSize),
               ),
-              style: TextStyle(fontSize: entryFontSize + 20),
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.allow(
-                  RegExp("[0-9]"),
-                ),
-                PriceFormatter(),
-              ],
             ),
           ),
         ),
-        _entryErrorWidget(
-          !_amountFilled,
-          boxSize: Size(10, entryCellHeight),
-        )
-      ],
+      ),
+    );
+
+    Widget amountEntry = createEntryElement(
+      "Amount",
+      entryWidget: TextField(
+        controller: amountInputCtrl,
+        keyboardType: const TextInputType.numberWithOptions(),
+        textAlign: TextAlign.right,
+        decoration: const InputDecoration(
+          isDense: true,
+          contentPadding: EdgeInsets.only(bottom: 5),
+        ),
+        style: TextStyle(fontSize: entryFontSize + 20),
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.allow(
+            RegExp("[0-9]"),
+          ),
+          PriceFormatter(),
+        ],
+      ),
     );
 
     Widget okButton = FloatingActionButton(
