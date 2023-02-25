@@ -112,7 +112,8 @@ class Expense {
     final iconFamilyData =
         iconFamily == null ? "MaterialIcons" : iconFamily.toString();
 
-    final iconPackage = data[Category.iconPackageCol].toString();
+    final iconPackage = data[Category.iconPackageCol]?.toString();
+
     final iconCode = data[Category.iconCol];
     final iconData =
         int.parse(iconCode == null ? "0xe16a" : iconCode.toString());
