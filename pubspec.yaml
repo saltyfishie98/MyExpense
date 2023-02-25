@@ -24,6 +24,7 @@ dependencies:
   fluttertoast: ^8.2.1
   home_widget: 
     path: ./vendor/home_widget
+  fluttericon: ^2.0.0
 
 dev_dependencies:
   flutter_test:
