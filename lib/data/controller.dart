@@ -220,11 +220,15 @@ class MainController extends StateXController {
   //// Home Widget /////////////////////////////////////////////////////////////////////////////////
 
   static void initHomeWidget() {
+    if (!(Platform.isAndroid || Platform.isIOS)) return;
+
     // required for ios only
     HomeWidget.setAppGroupId('MY_EXPENSE_IOS');
   }
 
   Future<void> updateHomeWidget() async {
+    if (!(Platform.isAndroid || Platform.isIOS)) return;
+
     HomeWidget.updateWidget(
       name: 'MyExpenseWidgetProvider',
       iOSName: 'MyExpenseWidget',
@@ -232,6 +236,8 @@ class MainController extends StateXController {
   }
 
   Future<void> sendHomeWidget(String totalExpense) async {
+    if (!(Platform.isAndroid || Platform.isIOS)) return;
+
     await HomeWidget.saveWidgetData(
       "amount",
       "\$$totalExpense",
@@ -239,8 +245,9 @@ class MainController extends StateXController {
     updateHomeWidget();
   }
 
-  void didHomeWidgetChange(Function(Uri? uri) callback) {
-    HomeWidget.widgetClicked.listen(callback);
+  void onHomeWidgetLaunched(Function(Uri?) callback) {
+    if (!(Platform.isAndroid || Platform.isIOS)) return;
+    HomeWidget.initiallyLaunchedFromHomeWidget().then(callback);
   }
 
   //// Misc ////////////////////////////////////////////////////////////////////////////////////////
